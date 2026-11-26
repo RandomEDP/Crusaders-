@@ -80,7 +80,7 @@ final class JoinCodeTests: XCTestCase {
         for _ in 0..<200 {
             let code = JoinCode.generate()
             XCTAssertEqual(code.count, JoinCode.length)
-            XCTAssertTrue(code.allSatisfy(JoinCode.alphabet.contains), code)
+            XCTAssertTrue(code.allSatisfy { JoinCode.alphabet.contains($0) }, code)
         }
     }
 
@@ -94,5 +94,18 @@ final class JoinCodeTests: XCTestCase {
         XCTAssertEqual(JoinCode.normalize(" ab c-234 "), "ABC234")
         XCTAssertNil(JoinCode.normalize("ABC23"))
         XCTAssertNil(JoinCode.normalize("ABC23!"))
+    }
+}
+
+final class ErrorMessageTests: XCTestCase {
+    func testEveryErrorHasAFriendlyMessage() {
+        let errors: [LocalizedError] = [
+            CharacterError.emptyName, CharacterError.levelOutOfRange,
+            CampaignError.emptyName, CampaignError.invalidJoinCode,
+            CampaignError.campaignNotFound, CampaignError.alreadyJoined
+        ]
+        for error in errors {
+            XCTAssertFalse(error.errorDescription?.isEmpty ?? true, "\(error)")
+        }
     }
 }

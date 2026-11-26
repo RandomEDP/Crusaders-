@@ -33,15 +33,4 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(joined.name, "Tomb")
         XCTAssertEqual(joined.role, .player)
     }
-
-    func testErrorsHaveFriendlyMessages() {
-        let errors: [LocalizedError] = [
-            CharacterError.emptyName, CharacterError.levelOutOfRange,
-            CampaignError.emptyName, CampaignError.invalidJoinCode,
-            CampaignError.campaignNotFound, CampaignError.alreadyJoined
-        ]
-        for error in errors {
-            XCTAssertFalse(error.errorDescription?.isEmpty ?? true)
-        }
-    }
 }

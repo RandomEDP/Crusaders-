@@ -51,7 +51,7 @@ public enum JoinCode {
     /// Upper-cases and strips spaces and dashes. Returns nil if the result is not a valid code.
     public static func normalize(_ raw: String) -> String? {
         let cleaned = raw.uppercased().filter { !$0.isWhitespace && $0 != "-" }
-        guard cleaned.count == length, cleaned.allSatisfy(alphabet.contains) else { return nil }
+        guard cleaned.count == length, cleaned.allSatisfy({ alphabet.contains($0) }) else { return nil }
         return cleaned
     }
 }
