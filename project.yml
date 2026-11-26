@@ -1,0 +1,78 @@
+name: Crusaders
+options:
+  bundleIdPrefix: com.ed89596
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.0"
+    # Overridden in CI from the APPLE_TEAM_ID secret. Set it locally in Xcode > Signing & Capabilities.
+    DEVELOPMENT_TEAM: ""
+
+packages:
+  CrusadersKit:
+    path: CrusadersKit
+
+targets:
+  Crusaders:
+    type: application
+    platform: iOS
+    sources:
+      - Crusaders
+    dependencies:
+      - package: CrusadersKit
+    info:
+      path: Crusaders/Info.plist
+      properties:
+        CFBundleDisplayName: Crusaders
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.ed89596.crusaders
+        TARGETED_DEVICE_FAMILY: "1"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+
+  CrusadersTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - CrusadersTests
+    dependencies:
+      - target: Crusaders
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.ed89596.crusaders.tests
+
+  CrusadersUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - CrusadersUITests
+    dependencies:
+      - target: Crusaders
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.ed89596.crusaders.uitests
+
+schemes:
+  Crusaders:
+    build:
+      targets:
+        Crusaders: all
+    test:
+      gatherCoverageData: true
+      targets:
+        - CrusadersTests
+        - CrusadersUITests
