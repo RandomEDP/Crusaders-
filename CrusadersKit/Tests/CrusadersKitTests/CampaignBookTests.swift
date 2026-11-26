@@ -8,10 +8,10 @@ final class CampaignBookTests: XCTestCase {
 
     func testCreateMakesUserTheDungeonMaster() throws {
         var book = CampaignBook()
-        let campaign = try book.create(name: "  Curse of the Moon ", joinCode: "MOON22")
+        let campaign = try book.create(name: "  Curse of the Moon ", joinCode: "MNP223")
         XCTAssertEqual(campaign.name, "Curse of the Moon")
         XCTAssertEqual(campaign.role, .dungeonMaster)
-        XCTAssertEqual(campaign.joinCode, "MOON22")
+        XCTAssertEqual(campaign.joinCode, "MNP223")
         XCTAssertEqual(book.campaigns, [campaign])
     }
 

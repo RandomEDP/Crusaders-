@@ -1,11 +1,10 @@
 name: CI
 
-# Runs tests on every branch and pull request. This workflow never signs or uploads anything.
+# Runs tests on every push to any branch (the results show on its pull request too).
+# This workflow never signs or uploads anything.
 on:
   push:
     branches: ["**"]
-  pull_request:
-    branches: [main]
 
 concurrency:
   group: ci-${{ github.ref }}

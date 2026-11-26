@@ -27,9 +27,9 @@ final class AppModelTests: XCTestCase {
     }
 
     func testJoinCampaignUsesDirectory() throws {
-        let directory = InMemoryCampaignDirectory(campaigns: [Campaign(name: "Tomb", joinCode: "TOMB22", role: .dungeonMaster)])
+        let directory = InMemoryCampaignDirectory(campaigns: [Campaign(name: "Tomb", joinCode: "TMB234", role: .dungeonMaster)])
         let model = AppModel(campaignDirectory: directory)
-        let joined = try model.joinCampaign(code: "tomb22")
+        let joined = try model.joinCampaign(code: "tmb234")
         XCTAssertEqual(joined.name, "Tomb")
         XCTAssertEqual(joined.role, .player)
     }
