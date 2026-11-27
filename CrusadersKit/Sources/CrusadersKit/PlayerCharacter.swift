@@ -6,16 +6,57 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
 
     public let id: UUID
     public var name: String
+    /// Display name of the race, e.g. "Hill Dwarf".
     public var race: String
+    /// Display name of the class, e.g. "Wizard".
     public var characterClass: String
     public var level: Int
 
-    public init(id: UUID = UUID(), name: String, race: String, characterClass: String, level: Int = 1) {
+    /// SRD ids. Nil for characters made before the character builder existed.
+    public var raceID: String?
+    public var subraceID: String?
+    public var classID: String?
+    /// Scores before racial bonuses and level-up improvements.
+    public var baseAbilityScores: AbilityScores
+    /// Abilities picked for a race's "choose your bonus" rule (Half-Elf).
+    public var racialBonusChoices: [Ability]
+    /// Points spent from Ability Score Improvements, one entry per point.
+    public var improvementPoints: [Ability]
+    public var skillProficiencies: Set<Skill>
+    public var experiencePoints: Int
+    /// Spells the character knows or has prepared.
+    public var spellIDs: Set<String>
+
+    public init(
+        id: UUID = UUID(),
+        name: String,
+        race: String,
+        characterClass: String,
+        level: Int = 1,
+        raceID: String? = nil,
+        subraceID: String? = nil,
+        classID: String? = nil,
+        baseAbilityScores: AbilityScores = AbilityScores(),
+        racialBonusChoices: [Ability] = [],
+        improvementPoints: [Ability] = [],
+        skillProficiencies: Set<Skill> = [],
+        experiencePoints: Int? = nil,
+        spellIDs: Set<String> = []
+    ) {
         self.id = id
         self.name = name
         self.race = race
         self.characterClass = characterClass
         self.level = level
+        self.raceID = raceID
+        self.subraceID = subraceID
+        self.classID = classID
+        self.baseAbilityScores = baseAbilityScores
+        self.racialBonusChoices = racialBonusChoices
+        self.improvementPoints = improvementPoints
+        self.skillProficiencies = skillProficiencies
+        self.experiencePoints = experiencePoints ?? Experience.minimumXP(forLevel: level)
+        self.spellIDs = spellIDs
     }
 
     /// e.g. "Level 3 Elf Wizard"
@@ -23,11 +64,51 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         let parts = [race, characterClass].filter { !$0.isEmpty }
         return (["Level \(level)"] + parts).joined(separator: " ")
     }
+
+    /// Adds XP and raises the level to match. Returns the levels gained, or nil if none.
+    @discardableResult
+    public mutating func addExperience(_ amount: Int) throws -> ClosedRange<Int>? {
+        guard amount > 0 else { throw CharacterError.invalidExperience }
+        experiencePoints += amount
+        let newLevel = max(level, Experience.level(forXP: experiencePoints))
+        guard newLevel > level else { return nil }
+        let gained = (level + 1)...newLevel
+        level = newLevel
+        return gained
+    }
+
+    /// Spends one Ability Score Improvement point. Abilities can't go above 20.
+    public mutating func spendImprovementPoint(on ability: Ability, catalog: RulesCatalog = .srd) throws {
+        let sheet = CharacterSheet(character: self, catalog: catalog)
+        guard sheet.unspentImprovementPoints > 0 else { throw CharacterError.noImprovementPoints }
+        guard sheet.abilityScores[ability] < AbilityScores.maximum else { throw CharacterError.abilityAtMaximum }
+        improvementPoints.append(ability)
+    }
+
+    /// Learns the spell if unknown, forgets it if known.
+    public mutating func toggleSpell(_ spellID: String) {
+        if spellIDs.contains(spellID) {
+            spellIDs.remove(spellID)
+        } else {
+            spellIDs.insert(spellID)
+        }
+    }
 }
 
 public enum CharacterError: Error, Equatable, Sendable {
     case emptyName
     case levelOutOfRange
+    case missingRace
+    case missingClass
+    case invalidSubrace
+    case invalidAbilityScore
+    case invalidRacialBonus
+    case tooManySkills
+    case invalidSkill
+    case invalidExperience
+    case noImprovementPoints
+    case abilityAtMaximum
+    case characterNotFound
 }
 
 /// The user's list of characters plus the rules for adding and removing them.
@@ -51,6 +132,31 @@ public struct CharacterRoster: Equatable, Sendable {
         )
         characters.append(character)
         return character
+    }
+
+    /// Builds a character from the creation form and adds it.
+    @discardableResult
+    public mutating func add(_ draft: CharacterDraft, catalog: RulesCatalog = .srd) throws -> PlayerCharacter {
+        let character = try draft.build(catalog: catalog)
+        characters.append(character)
+        return character
+    }
+
+    public func character(id: PlayerCharacter.ID) -> PlayerCharacter? {
+        characters.first { $0.id == id }
+    }
+
+    /// Runs a change on one character and stores the result.
+    @discardableResult
+    public mutating func update<T>(
+        id: PlayerCharacter.ID,
+        _ change: (inout PlayerCharacter) throws -> T
+    ) throws -> T {
+        guard let index = characters.firstIndex(where: { $0.id == id }) else { throw CharacterError.characterNotFound }
+        var copy = characters[index]
+        let result = try change(&copy)
+        characters[index] = copy
+        return result
     }
 
     public mutating func remove(id: PlayerCharacter.ID) {
