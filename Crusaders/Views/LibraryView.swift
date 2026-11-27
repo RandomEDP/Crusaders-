@@ -5,19 +5,51 @@ struct LibraryView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
-        List(model.libraryCategories) { category in
-            NavigationLink(value: category) {
-                Label {
-                    HStack {
-                        Text(category.name)
-                        Spacer()
-                        Text("\(category.items.count)").foregroundStyle(.secondary)
+        List {
+            Section {
+                NavigationLink {
+                    ItemsView()
+                } label: {
+                    Label {
+                        HStack {
+                            Text("Items")
+                            Spacer()
+                            Text("\(model.itemLibrary.catalog.baseItems.count)").foregroundStyle(.secondary)
+                        }
+                    } icon: {
+                        Image(systemName: "shippingbox")
                     }
-                } icon: {
-                    Image(systemName: category.systemImage)
+                }
+                .accessibilityIdentifier("library.items")
+            } footer: {
+                Text("Weapons, armour, ammunition, potions, gear and tools.")
+            }
+
+            Section {
+                ForEach(model.libraryCategories) { category in
+                    NavigationLink(value: category) {
+                        Label {
+                            HStack {
+                                Text(category.name)
+                                Spacer()
+                                Text("\(category.items.count)").foregroundStyle(.secondary)
+                            }
+                        } icon: {
+                            Image(systemName: category.systemImage)
+                        }
+                    }
+                    .accessibilityIdentifier("library.category.\(category.id)")
                 }
             }
-            .accessibilityIdentifier("library.category.\(category.id)")
+
+            Section {
+                NavigationLink {
+                    CreatorAccessView()
+                } label: {
+                    Label("Creator access", systemImage: "person.badge.key")
+                }
+                .accessibilityIdentifier("library.creator")
+            }
         }
         .navigationTitle("Library")
         .navigationDestination(for: LibraryCategory.self) { category in

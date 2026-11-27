@@ -27,6 +27,28 @@ The `.xcodeproj` is generated from `project.yml` and isn't committed. Re-run `xc
 - Package tests: `swift test --package-path CrusadersKit`
 - Everything: `xcodebuild test -project Crusaders.xcodeproj -scheme Crusaders -destination 'platform=iOS Simulator,name=iPhone 16'`
 
+## Library items
+
+Library > Items holds every weapon, armour, ammunition, potion, adventuring gear and tool from the SRD 5.1, under collapsible headers. The built-in list is `CrusadersKit/Sources/CrusadersKit/Resources/srd-items.json`.
+
+### Creator editing
+
+The app's creator can change any characteristic of an item (name, cost, weight, rarity, damage, properties, range, AC, Strength, stealth, description) from the item's **Edit** button. Edits are saved to the CloudKit public database, so every player gets them. **Reset to SRD values** removes an edit.
+
+Release builds (TestFlight) always use iCloud. Debug builds keep edits in memory so CI runs without signing. In Debug, add the launch argument `-creatorMode` to try creator tools, or `-useCloudKit` to talk to iCloud from a signed build.
+
+### iCloud setup (once, by the Apple account owner)
+
+1. In the Apple Developer portal, create the iCloud container `iCloud.com.randomedp.Crusaders` and enable iCloud (CloudKit) on the App ID `com.randomedp.Crusaders` with that container. The app's entitlements (`Crusaders/Crusaders.entitlements`) already ask for it.
+2. In the CloudKit Dashboard, in the public database, create two record types:
+   - `ItemOverride` with fields `itemID` (String) and `payload` (String). Add a queryable index on `recordName`.
+   - `Creator` with field `userID` (String, queryable).
+3. Security: everyone (World) can read both types. Only a **Creator** security role can create or write `ItemOverride`. Nobody in the app can create `Creator` records.
+4. Add the creator: in the app, open Library > Creator access and copy the iCloud ID. Create a `Creator` record with that `userID`, and give that user the Creator role.
+5. Deploy the schema to Production (TestFlight uses the Production environment).
+
+Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
 ## Work cycle
 
 1. Create a branch for each piece of work.

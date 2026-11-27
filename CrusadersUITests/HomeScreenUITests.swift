@@ -56,8 +56,7 @@ final class HomeScreenUITests: XCTestCase {
     func testLibraryShowsCategories() {
         app.buttons["home.library"].tap()
         XCTAssertTrue(app.navigationBars["Library"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["library.items"].exists)
         XCTAssertTrue(app.staticTexts["Creatures"].exists)
-        XCTAssertTrue(app.staticTexts["Weapons"].exists)
-        XCTAssertTrue(app.staticTexts["Armour"].exists)
     }
 }

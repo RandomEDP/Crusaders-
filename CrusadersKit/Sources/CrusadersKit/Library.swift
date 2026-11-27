@@ -40,6 +40,7 @@ public struct LibraryCategory: Identifiable, Hashable, Codable, Sendable {
 }
 
 /// Where library content comes from. The placeholder catalog is used until creator uploads exist.
+/// Weapons, armour, potions and other equipment live in Library > Items (see `ItemCatalog`).
 public protocol LibraryCatalog: Sendable {
     func categories() -> [LibraryCategory]
 }
@@ -57,23 +58,12 @@ public struct PlaceholderLibraryCatalog: LibraryCatalog {
             LibraryItem(id: "owlbear", name: "Owlbear", summary: "Half owl, half bear, all trouble.", creator: "Crusaders"),
             LibraryItem(id: "young-red-dragon", name: "Young Red Dragon", summary: "Greedy, proud and breathes fire.", creator: "Crusaders")
         ]),
-        LibraryCategory(id: "weapons", name: "Weapons", systemImage: "hammer", items: [
-            LibraryItem(id: "longsword", name: "Longsword", summary: "Versatile martial blade, 1d8 slashing.", creator: "Crusaders"),
-            LibraryItem(id: "shortbow", name: "Shortbow", summary: "Light ranged weapon, 1d6 piercing.", creator: "Crusaders"),
-            LibraryItem(id: "warhammer", name: "Warhammer", summary: "Heavy hitter, 1d8 bludgeoning.", creator: "Crusaders")
-        ]),
-        LibraryCategory(id: "armour", name: "Armour", systemImage: "shield", items: [
-            LibraryItem(id: "leather", name: "Leather Armour", summary: "Light armour, AC 11 + Dex.", creator: "Crusaders"),
-            LibraryItem(id: "chain-mail", name: "Chain Mail", summary: "Heavy armour, AC 16.", creator: "Crusaders"),
-            LibraryItem(id: "shield", name: "Shield", summary: "+2 AC while held.", creator: "Crusaders")
-        ]),
         LibraryCategory(id: "spells", name: "Spells", systemImage: "sparkles", items: [
             LibraryItem(id: "fire-bolt", name: "Fire Bolt", summary: "Cantrip, ranged fire attack.", creator: "Crusaders"),
             LibraryItem(id: "cure-wounds", name: "Cure Wounds", summary: "1st level, heal a creature you touch.", creator: "Crusaders")
         ]),
         LibraryCategory(id: "items", name: "Magic Items", systemImage: "wand.and.stars", items: [
-            LibraryItem(id: "bag-of-holding", name: "Bag of Holding", summary: "Bigger on the inside.", creator: "Crusaders"),
-            LibraryItem(id: "potion-of-healing", name: "Potion of Healing", summary: "Regain 2d4 + 2 hit points.", creator: "Crusaders")
+            LibraryItem(id: "bag-of-holding", name: "Bag of Holding", summary: "Bigger on the inside.", creator: "Crusaders")
         ])
     ]
 }

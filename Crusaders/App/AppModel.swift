@@ -3,25 +3,28 @@ import Observation
 import CrusadersKit
 
 /// App-wide state shared by every screen.
-/// Everything is in memory for now. Sign in with Apple and CloudKit storage come in later branches.
+/// Characters and campaigns are in memory for now. Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
 @MainActor
 @Observable
 final class AppModel {
     var roster: CharacterRoster
     var campaignBook: CampaignBook
     let libraryCategories: [LibraryCategory]
+    let itemLibrary: ItemLibrary
     private let campaignDirectory: CampaignDirectory
 
     init(
         roster: CharacterRoster = CharacterRoster(),
         campaignBook: CampaignBook = CampaignBook(),
         library: LibraryCatalog = PlaceholderLibraryCatalog(),
-        campaignDirectory: CampaignDirectory = InMemoryCampaignDirectory.sample
+        campaignDirectory: CampaignDirectory = InMemoryCampaignDirectory.sample,
+        itemLibrary: ItemLibrary? = nil
     ) {
         self.roster = roster
         self.campaignBook = campaignBook
         self.libraryCategories = library.categories()
         self.campaignDirectory = campaignDirectory
+        self.itemLibrary = itemLibrary ?? ItemLibrary.makeDefault()
     }
 
     @discardableResult
