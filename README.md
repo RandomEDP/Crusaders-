@@ -51,6 +51,20 @@ With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in m
 
 Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Saving characters
+
+Characters are saved with SwiftData, so they're still there after the app closes. With iCloud on, SwiftData also mirrors them to each player's **private** CloudKit database, so they sync across every device signed in to the same Apple ID. Nobody else can see them.
+
+- **iCloud off** (today, `CLOUDKIT_ENABLED: NO`): characters are saved on the device only. The Characters screen says so.
+- **iCloud on**: Release builds (TestFlight) sync. Debug builds stay on the device unless launched with `-useCloudKit`. Characters already saved on the device are uploaded the first time iCloud is used.
+- Each character is one `StoredCharacter` record holding the character as JSON, so new character fields never need a database migration.
+- UI tests launch with `-resetCharacters` (start empty) or `-inMemoryCharacters` (never touch the disk).
+
+Extra iCloud setup for character sync (with the Library items setup below):
+
+1. On the App ID, also enable **Push Notifications** (CloudKit uses silent pushes to deliver changes from other devices). The entitlements file already has `aps-environment`, and Info.plist has the `remote-notification` background mode.
+2. Run a Debug build once with `-useCloudKit` on a device signed in to iCloud and create a character. That creates the `CD_StoredCharacter` record type in the Development private database. Then deploy the schema to Production in the CloudKit Dashboard.
+
 ## Characters and SRD content
 
 The character builder uses every race, class (with its SRD subclass) and spell from the **System Reference Document 5.1**: 9 races, 12 classes and 319 spells. Characters level up from XP using the SRD table, and the level-up screen lists each new feature, spell slot, spell level and subclass.

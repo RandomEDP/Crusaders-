@@ -7,7 +7,20 @@ final class HomeScreenUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        // Start every test with no saved characters.
+        app.launchArguments = ["-resetCharacters"]
         app.launch()
+    }
+
+    func testCharactersAreStillThereAfterTheAppRestarts() {
+        createCharacter(named: "Dara")
+        XCTAssertTrue(app.descendants(matching: .any)["characters.storage"].exists)
+        app.terminate()
+
+        app.launchArguments = []
+        app.launch()
+        app.buttons["home.characters"].tap()
+        XCTAssertTrue(characterRow(named: "Dara").waitForExistence(timeout: 5))
     }
 
     func testAppBootsToHomeWithThreeOptions() {

@@ -30,6 +30,9 @@ struct CharactersView: View {
                 }
             }
         }
+        .safeAreaInset(edge: .bottom) {
+            StorageNote(mode: model.characterStorageMode, problem: model.characterStorageProblem)
+        }
         .navigationTitle("Characters")
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -43,6 +46,42 @@ struct CharactersView: View {
         }
         .sheet(isPresented: $isCreating) {
             CharacterCreationView()
+        }
+    }
+}
+
+/// Tells the player where their characters are saved, and shows save errors.
+private struct StorageNote: View {
+    let mode: CharacterPersistence.Mode
+    let problem: String?
+
+    var body: some View {
+        if let text = problem ?? message {
+            Label(text, systemImage: icon)
+                .font(.footnote)
+                .foregroundStyle(problem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
+                .padding(.horizontal)
+                .padding(.vertical, 8)
+                .frame(maxWidth: .infinity)
+                .background(.bar)
+                .accessibilityIdentifier("characters.storage")
+        }
+    }
+
+    private var message: String? {
+        switch mode {
+        case .iCloud: return "Saved to iCloud and synced to your devices."
+        case .device: return "Saved on this device. iCloud sync turns on once iCloud is set up for the app."
+        case .memory(let reason): return reason
+        }
+    }
+
+    private var icon: String {
+        if problem != nil { return "exclamationmark.icloud" }
+        switch mode {
+        case .iCloud: return "checkmark.icloud"
+        case .device: return "iphone"
+        case .memory: return "exclamationmark.triangle"
         }
     }
 }
