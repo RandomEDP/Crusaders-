@@ -1,6 +1,19 @@
 import Foundation
 
-/// A campaign the user runs or plays in.
+/// Someone in a campaign: the Dungeon Master or a player.
+public struct CampaignMember: Identifiable, Hashable, Codable, Sendable {
+    /// Stable id for this person. A random id made on first launch for now;
+    /// it becomes the Sign in with Apple / iCloud user id once those are switched on.
+    public let id: String
+    public var name: String
+
+    public init(id: String, name: String) {
+        self.id = id
+        self.name = name
+    }
+}
+
+/// A campaign the user runs or plays in. The 6-digit join code identifies it everywhere.
 public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     public enum Role: String, Codable, Sendable {
         case dungeonMaster
@@ -14,33 +27,58 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
         }
     }
 
-    public let id: UUID
+    public var id: String { joinCode }
     public var name: String
     public var joinCode: String
-    public var role: Role
+    /// Whoever created the campaign.
+    public var dungeonMaster: CampaignMember
+    /// Everyone who joined with the code, in the order they joined.
+    public var players: [CampaignMember]
 
-    public init(id: UUID = UUID(), name: String, joinCode: String, role: Role) {
-        self.id = id
+    public init(name: String, joinCode: String, dungeonMaster: CampaignMember, players: [CampaignMember] = []) {
         self.name = name
         self.joinCode = joinCode
-        self.role = role
+        self.dungeonMaster = dungeonMaster
+        self.players = players
+    }
+
+    /// This person's role, or nil if they aren't in the campaign.
+    public func role(of memberID: String) -> Role? {
+        if dungeonMaster.id == memberID { return .dungeonMaster }
+        if players.contains(where: { $0.id == memberID }) { return .player }
+        return nil
+    }
+
+    /// Adds a player, or updates their name if they're already listed. The DM is never added as a player.
+    public mutating func addPlayer(_ player: CampaignMember) {
+        guard player.id != dungeonMaster.id else { return }
+        if let index = players.firstIndex(where: { $0.id == player.id }) {
+            players[index].name = player.name
+        } else {
+            players.append(player)
+        }
     }
 }
 
 public enum CampaignError: Error, Equatable, Sendable {
     case emptyName
+    case emptyPlayerName
     case invalidJoinCode
     case campaignNotFound
     case alreadyJoined
+    /// Every code we tried was already in use.
+    case codeTaken
+    /// iCloud couldn't be reached.
+    case directoryUnavailable
 }
 
-/// Join codes are short, upper-case and avoid look-alike characters (0/O, 1/I/L).
+/// Join codes are 6 digits, e.g. "042917". Leading zeros count.
 public enum JoinCode {
     public static let length = 6
-    public static let alphabet = Array("ABCDEFGHJKMNPQRSTUVWXYZ23456789")
+    public static let digits = Array("0123456789")
 
     public static func generate<G: RandomNumberGenerator>(using generator: inout G) -> String {
-        String((0..<length).map { _ in alphabet.randomElement(using: &generator)! })
+        String((0..<length).map { _ in digits.randomElement(using: &generator)! })
     }
 
     public static func generate() -> String {
@@ -48,66 +86,53 @@ public enum JoinCode {
         return generate(using: &generator)
     }
 
-    /// Upper-cases and strips spaces and dashes. Returns nil if the result is not a valid code.
+    /// Strips spaces and dashes. Returns nil unless exactly 6 digits are left.
     public static func normalize(_ raw: String) -> String? {
-        let cleaned = raw.uppercased().filter { !$0.isWhitespace && $0 != "-" }
-        guard cleaned.count == length, cleaned.allSatisfy({ alphabet.contains($0) }) else { return nil }
+        let cleaned = raw.filter { !$0.isWhitespace && $0 != "-" }
+        guard cleaned.count == length, cleaned.allSatisfy({ digits.contains($0) }) else { return nil }
         return cleaned
     }
-}
 
-/// Looks up campaigns that other people created, by join code.
-/// Placeholder for the CloudKit-backed directory that comes later.
-public protocol CampaignDirectory: Sendable {
-    func campaign(forJoinCode code: String) -> Campaign?
-}
-
-public struct InMemoryCampaignDirectory: CampaignDirectory {
-    private let campaigns: [String: Campaign]
-
-    public init(campaigns: [Campaign]) {
-        self.campaigns = Dictionary(campaigns.map { ($0.joinCode, $0) }, uniquingKeysWith: { first, _ in first })
+    /// "042917" shown as "042 917" so it's easy to read out at the table.
+    public static func display(_ code: String) -> String {
+        guard code.count == length else { return code }
+        return "\(code.prefix(3)) \(code.suffix(3))"
     }
-
-    public func campaign(forJoinCode code: String) -> Campaign? {
-        campaigns[code]
-    }
-
-    /// Sample campaigns you can join while there is no backend yet.
-    public static let sample = InMemoryCampaignDirectory(campaigns: [
-        Campaign(name: "The Sunken Citadel", joinCode: "CRUSAD", role: .player),
-        Campaign(name: "Dragons of the Ember Coast", joinCode: "EMBER7", role: .player)
-    ])
 }
 
-/// The campaigns the user is part of, plus the rules for creating and joining.
-public struct CampaignBook: Equatable, Sendable {
+/// The campaigns this user is part of. Pure rules, no networking.
+public struct CampaignBook: Equatable, Codable, Sendable {
     public private(set) var campaigns: [Campaign]
 
     public init(campaigns: [Campaign] = []) {
         self.campaigns = campaigns
     }
 
-    @discardableResult
-    public mutating func create(name: String, joinCode: String = JoinCode.generate()) throws -> Campaign {
-        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { throw CampaignError.emptyName }
-        let campaign = Campaign(name: trimmed, joinCode: joinCode, role: .dungeonMaster)
-        campaigns.append(campaign)
-        return campaign
+    public func campaign(code: String) -> Campaign? {
+        campaigns.first { $0.joinCode == code }
     }
 
-    @discardableResult
-    public mutating func join(code rawCode: String, directory: CampaignDirectory) throws -> Campaign {
-        guard let code = JoinCode.normalize(rawCode) else { throw CampaignError.invalidJoinCode }
-        guard !campaigns.contains(where: { $0.joinCode == code }) else { throw CampaignError.alreadyJoined }
-        guard var found = directory.campaign(forJoinCode: code) else { throw CampaignError.campaignNotFound }
-        found.role = .player
-        campaigns.append(found)
-        return found
+    public func contains(code: String) -> Bool {
+        campaign(code: code) != nil
     }
 
-    public mutating func leave(id: Campaign.ID) {
-        campaigns.removeAll { $0.id == id }
+    /// Adds a campaign, or replaces the stored copy with the same code (e.g. after a refresh).
+    public mutating func upsert(_ campaign: Campaign) {
+        if let index = campaigns.firstIndex(where: { $0.joinCode == campaign.joinCode }) {
+            campaigns[index] = campaign
+        } else {
+            campaigns.append(campaign)
+        }
+    }
+
+    public mutating func leave(code: String) {
+        campaigns.removeAll { $0.joinCode == code }
+    }
+
+    /// Trims a name and rejects blanks.
+    static func cleanName(_ raw: String, error: CampaignError) throws -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw error }
+        return trimmed
     }
 }

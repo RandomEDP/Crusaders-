@@ -51,6 +51,23 @@ With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in m
 
 Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Campaigns
+
+Campaigns > + > **Create campaign** asks for a campaign name and your name, then makes a random **6-digit join code** (for example `042 917`). Whoever creates the campaign is its **Dungeon Master**. Other players use **Join campaign**, enter the code and their name, and are listed as **Players**. Tap a campaign to see its code (with a Share button), the DM and the players. Pull down to refresh the player list.
+
+Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
+
+**Sharing between phones needs iCloud.** While iCloud is switched off (see Library items), campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
+
+### iCloud setup for campaigns (once, by the Apple account owner)
+
+In the CloudKit Dashboard, public database, after the container from the Library items setup exists:
+
+1. Create record type `Campaign` with fields `name`, `joinCode`, `dmID`, `dmName` (all String). Records are named `campaign-<code>`, which keeps codes unique.
+2. Create record type `CampaignPlayer` with fields `joinCode` (String, **queryable**), `memberID` (String), `name` (String).
+3. Security for both: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record, so nobody edits anyone else's.
+4. Deploy the schema to Production.
+
 ## Saving characters
 
 Characters are saved with SwiftData, so they're still there after the app closes. With iCloud on, SwiftData also mirrors them to each player's **private** CloudKit database, so they sync across every device signed in to the same Apple ID. Nobody else can see them.
