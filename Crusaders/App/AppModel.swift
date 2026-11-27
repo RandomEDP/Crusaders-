@@ -3,12 +3,17 @@ import Observation
 import CrusadersKit
 
 /// App-wide state shared by every screen.
-/// Characters are in memory for now. Campaigns are saved on the phone and shared through CloudKit once iCloud is on
-/// (see `CampaignManager.makeDefault`). Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
+/// Characters are saved through `characterStore` (SwiftData, synced with iCloud when it's on; see `CharacterPersistence`).
+/// Campaigns are saved on the phone and shared through CloudKit once iCloud is on (see `CampaignManager.makeDefault`).
+/// Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
 @MainActor
 @Observable
 final class AppModel {
-    var roster: CharacterRoster
+    private(set) var roster: CharacterRoster
+    /// Set when saving or loading characters failed, for the Characters screen to show.
+    private(set) var characterStorageProblem: String?
+    let characterStorageMode: CharacterPersistence.Mode
+    private let characterStore: CharacterStore?
     let campaigns: CampaignManager
     let libraryCategories: [LibraryCategory]
     let itemLibrary: ItemLibrary
@@ -19,24 +24,66 @@ final class AppModel {
         campaigns: CampaignManager? = nil,
         library: LibraryCatalog = PlaceholderLibraryCatalog(),
         rules: RulesCatalog = .srd,
-        itemLibrary: ItemLibrary? = nil
+        itemLibrary: ItemLibrary? = nil,
+        characterStore: CharacterStore? = nil,
+        characterStorageMode: CharacterPersistence.Mode = .memory(reason: nil)
     ) {
         self.roster = roster
         self.campaigns = campaigns ?? CampaignManager.makeDefault()
+        self.characterStore = characterStore
+        self.characterStorageMode = characterStorageMode
         self.libraryCategories = library.categories()
         self.itemLibrary = itemLibrary ?? ItemLibrary.makeDefault()
         self.rules = rules
+        if characterStore != nil {
+            reloadCharacters()
+        }
+    }
+
+    /// The app's model with characters saved where `CharacterPersistence` picks.
+    static func live() -> AppModel {
+        let setup = CharacterPersistence.makeDefault()
+        return AppModel(characterStore: setup.store, characterStorageMode: setup.mode)
+    }
+
+    /// Reads characters from the store again, for example after iCloud brings in changes.
+    func reloadCharacters() {
+        guard let characterStore else { return }
+        do {
+            roster = CharacterRoster(characters: try characterStore.loadCharacters())
+            characterStorageProblem = nil
+        } catch {
+            characterStorageProblem = "Couldn't load your characters: \(error.localizedDescription)"
+        }
+    }
+
+    private func persist(_ id: PlayerCharacter.ID) {
+        guard let characterStore else { return }
+        do {
+            if let character = roster.character(id: id) {
+                try characterStore.save(character)
+            } else {
+                try characterStore.delete(id: id)
+            }
+            characterStorageProblem = nil
+        } catch {
+            characterStorageProblem = "Couldn't save your changes: \(error.localizedDescription)"
+        }
     }
 
     @discardableResult
     func addCharacter(name: String, race: String, characterClass: String, level: Int) throws -> PlayerCharacter {
-        try roster.add(name: name, race: race, characterClass: characterClass, level: level)
+        let character = try roster.add(name: name, race: race, characterClass: characterClass, level: level)
+        persist(character.id)
+        return character
     }
 
     /// Creates a character from the creation form.
     @discardableResult
     func createCharacter(from draft: CharacterDraft) throws -> PlayerCharacter {
-        try roster.add(draft, catalog: rules)
+        let character = try roster.add(draft, catalog: rules)
+        persist(character.id)
+        return character
     }
 
     func character(id: PlayerCharacter.ID) -> PlayerCharacter? {
@@ -51,21 +98,28 @@ final class AppModel {
     @discardableResult
     func addExperience(_ amount: Int, to id: PlayerCharacter.ID) throws -> LevelUpSummary? {
         let gained = try roster.update(id: id) { try $0.addExperience(amount) }
+        persist(id)
         guard let gained, let hero = roster.character(id: id) else { return nil }
         return LevelUpSummary(character: hero, fromLevel: gained.lowerBound - 1, catalog: rules)
     }
 
     func toggleSpell(_ spellID: String, for id: PlayerCharacter.ID) {
-        _ = try? roster.update(id: id) { $0.toggleSpell(spellID) }
+        guard (try? roster.update(id: id) { $0.toggleSpell(spellID) }) != nil else { return }
+        persist(id)
     }
 
     func spendImprovementPoint(on ability: Ability, for id: PlayerCharacter.ID) throws {
         let catalog = self.rules
         try roster.update(id: id) { try $0.spendImprovementPoint(on: ability, catalog: catalog) }
+        persist(id)
     }
 
     func deleteCharacters(atOffsets offsets: IndexSet) {
+        let ids = offsets.compactMap { roster.characters.indices.contains($0) ? roster.characters[$0].id : nil }
         roster.remove(atOffsets: offsets)
+        for id in ids {
+            persist(id)
+        }
     }
 
     /// Creates a campaign with a new 6-digit join code. The user is its Dungeon Master.

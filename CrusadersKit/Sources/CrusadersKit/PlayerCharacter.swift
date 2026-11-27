@@ -59,6 +59,35 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         self.spellIDs = spellIDs
     }
 
+    enum CodingKeys: String, CodingKey {
+        case id, name, race, characterClass, level
+        case raceID, subraceID, classID, baseAbilityScores, racialBonusChoices
+        case improvementPoints, skillProficiencies, experiencePoints, spellIDs
+    }
+
+    /// Reads saved characters. Anything missing gets a default, so characters saved by
+    /// older versions of the app still load after new fields are added.
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let level = try container.decodeIfPresent(Int.self, forKey: .level) ?? 1
+        self.init(
+            id: try container.decode(UUID.self, forKey: .id),
+            name: try container.decodeIfPresent(String.self, forKey: .name) ?? "",
+            race: try container.decodeIfPresent(String.self, forKey: .race) ?? "",
+            characterClass: try container.decodeIfPresent(String.self, forKey: .characterClass) ?? "",
+            level: min(max(level, PlayerCharacter.levelRange.lowerBound), PlayerCharacter.levelRange.upperBound),
+            raceID: try container.decodeIfPresent(String.self, forKey: .raceID),
+            subraceID: try container.decodeIfPresent(String.self, forKey: .subraceID),
+            classID: try container.decodeIfPresent(String.self, forKey: .classID),
+            baseAbilityScores: try container.decodeIfPresent(AbilityScores.self, forKey: .baseAbilityScores) ?? AbilityScores(),
+            racialBonusChoices: try container.decodeIfPresent([Ability].self, forKey: .racialBonusChoices) ?? [],
+            improvementPoints: try container.decodeIfPresent([Ability].self, forKey: .improvementPoints) ?? [],
+            skillProficiencies: try container.decodeIfPresent(Set<Skill>.self, forKey: .skillProficiencies) ?? [],
+            experiencePoints: try container.decodeIfPresent(Int.self, forKey: .experiencePoints),
+            spellIDs: try container.decodeIfPresent(Set<String>.self, forKey: .spellIDs) ?? []
+        )
+    }
+
     /// e.g. "Level 3 Elf Wizard"
     public var summary: String {
         let parts = [race, characterClass].filter { !$0.isEmpty }
