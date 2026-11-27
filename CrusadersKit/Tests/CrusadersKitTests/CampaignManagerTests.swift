@@ -1,12 +1,15 @@
 import XCTest
 @testable import CrusadersKit
 
+private let hero = PlayerCharacter(name: "Aria", race: "Elf", characterClass: "Wizard")
+
 /// A directory that fails every call, like iCloud being offline.
 private struct OfflineDirectory: CampaignDirectory {
     struct Offline: Error {}
     func publish(_ campaign: Campaign) async throws { throw Offline() }
     func campaign(forJoinCode code: String) async throws -> Campaign? { throw Offline() }
     func addPlayer(_ player: CampaignMember, toCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
+    func record(_ change: InventoryChange, inCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
 }
 
 /// Hands out codes from a list, so tests can force clashes.
@@ -50,7 +53,7 @@ final class CampaignManagerTests: XCTestCase {
         let player = manager(id: "p1", directory: shared)
 
         try await dm.create(name: "Night Below", yourName: "Dana")
-        let joined = try await player.join(code: "042 917", yourName: "Aria")
+        let joined = try await player.join(code: "042 917", yourName: "Aria", character: hero)
 
         XCTAssertEqual(joined.name, "Night Below")
         XCTAssertEqual(joined.dungeonMaster.name, "Dana")
@@ -68,8 +71,8 @@ final class CampaignManagerTests: XCTestCase {
         let shared = InMemoryCampaignDirectory()
         let dm = manager(id: "dm", directory: shared, codes: ["111111"])
         try await dm.create(name: "Night Below", yourName: "Dana")
-        try await manager(id: "p1", directory: shared).join(code: "111111", yourName: "Aria")
-        let last = try await manager(id: "p2", directory: shared).join(code: "111111", yourName: "Bram")
+        try await manager(id: "p1", directory: shared).join(code: "111111", yourName: "Aria", character: hero)
+        let last = try await manager(id: "p2", directory: shared).join(code: "111111", yourName: "Bram", character: hero)
         XCTAssertEqual(last.players.map(\.name), ["Aria", "Bram"])
     }
 
@@ -101,17 +104,17 @@ final class CampaignManagerTests: XCTestCase {
         let shared = InMemoryCampaignDirectory.withSamples()
         let player = manager(id: "p1", directory: shared)
         for bad in ["", "12345", "1234567", "12345A"] {
-            await assertThrows(.invalidJoinCode) { try await player.join(code: bad, yourName: "Aria") }
+            await assertThrows(.invalidJoinCode) { try await player.join(code: bad, yourName: "Aria", character: hero) }
         }
-        await assertThrows(.emptyPlayerName) { try await player.join(code: "123456", yourName: " ") }
-        await assertThrows(.campaignNotFound) { try await player.join(code: "654321", yourName: "Aria") }
+        await assertThrows(.emptyPlayerName) { try await player.join(code: "123456", yourName: " ", character: hero) }
+        await assertThrows(.campaignNotFound) { try await player.join(code: "654321", yourName: "Aria", character: hero) }
         XCTAssertTrue(player.campaigns.isEmpty)
     }
 
     func testJoiningTwiceFails() async throws {
         let player = manager(id: "p1", directory: InMemoryCampaignDirectory.withSamples())
-        try await player.join(code: "123456", yourName: "Aria")
-        await assertThrows(.alreadyJoined) { try await player.join(code: "123456", yourName: "Aria") }
+        try await player.join(code: "123456", yourName: "Aria", character: hero)
+        await assertThrows(.alreadyJoined) { try await player.join(code: "123456", yourName: "Aria", character: hero) }
         XCTAssertEqual(player.campaigns.count, 1)
     }
 
@@ -121,7 +124,7 @@ final class CampaignManagerTests: XCTestCase {
         let dm = manager(id: "dm", directory: shared, persistence: persistence, codes: ["333333"])
         try await dm.create(name: "Night Below", yourName: "Dana")
         dm.leave(code: "333333")
-        await assertThrows(.alreadyJoined) { try await dm.join(code: "333333", yourName: "Dana") }
+        await assertThrows(.alreadyJoined) { try await dm.join(code: "333333", yourName: "Dana", character: hero) }
         let remote = try await shared.campaign(forJoinCode: "333333")
         XCTAssertEqual(remote?.players, [])
     }
@@ -129,7 +132,7 @@ final class CampaignManagerTests: XCTestCase {
     func testOfflineErrorsAreFriendly() async {
         let player = manager(id: "p1", directory: OfflineDirectory())
         await assertThrows(.directoryUnavailable) { try await player.create(name: "Night Below", yourName: "Aria") }
-        await assertThrows(.directoryUnavailable) { try await player.join(code: "123456", yourName: "Aria") }
+        await assertThrows(.directoryUnavailable) { try await player.join(code: "123456", yourName: "Aria", character: hero) }
     }
 
     func testRefreshProblemIsReportedAndSavedCampaignsKept() async throws {

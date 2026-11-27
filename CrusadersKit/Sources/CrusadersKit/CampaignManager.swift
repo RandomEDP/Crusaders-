@@ -143,13 +143,15 @@ public final class CampaignManager {
         throw CampaignError.codeTaken
     }
 
-    /// Joins someone else's campaign by its 6-digit code. The user is listed as a player.
+    /// Joins someone else's campaign by its 6-digit code with one of the user's characters.
+    /// The user is listed as a player.
     @discardableResult
-    public func join(code rawCode: String, yourName: String) async throws -> Campaign {
+    public func join(code rawCode: String, yourName: String, character: PlayerCharacter?) async throws -> Campaign {
         guard let code = JoinCode.normalize(rawCode) else { throw CampaignError.invalidJoinCode }
         let playerName = try CampaignBook.cleanName(yourName, error: .emptyPlayerName)
+        guard let character else { throw CampaignError.noCharacterSelected }
         guard !book.contains(code: code) else { throw CampaignError.alreadyJoined }
-        let player = CampaignMember(id: me.id, name: playerName)
+        let player = CampaignMember(id: me.id, name: playerName, character: CampaignCharacter(character))
 
         let joined: Campaign
         do {
@@ -167,6 +169,50 @@ public final class CampaignManager {
         book.upsert(joined)
         persist()
         return joined
+    }
+
+    /// The DM adds items to a player's character inventory.
+    @discardableResult
+    public func addItem(itemID: String, name: String, quantity: Int, to playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard quantity > 0 else { throw CampaignError.invalidQuantity }
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .dungeonMaster else { throw CampaignError.onlyDungeonMasterCanAdd }
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        let change = InventoryChange(playerID: playerID, itemID: itemID, itemName: name, delta: quantity, authorID: me.id)
+        return try await send(change, code: code)
+    }
+
+    /// The DM, or the player who owns the character, removes items. Removing more than there are removes them all.
+    @discardableResult
+    public func removeItem(itemID: String, quantity: Int = 1, from playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard quantity > 0 else { throw CampaignError.invalidQuantity }
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .dungeonMaster || me.id == playerID else { throw CampaignError.notYourInventory }
+        guard let entry = campaign.inventory(of: playerID).first(where: { $0.itemID == itemID }) else {
+            throw CampaignError.itemNotInInventory
+        }
+        let change = InventoryChange(playerID: playerID, itemID: itemID, itemName: entry.name,
+                                     delta: -min(quantity, entry.quantity), authorID: me.id)
+        return try await send(change, code: code)
+    }
+
+    private func requireCampaign(_ code: String) throws -> Campaign {
+        guard let campaign = book.campaign(code: code) else { throw CampaignError.campaignNotFound }
+        return campaign
+    }
+
+    private func send(_ change: InventoryChange, code: String) async throws -> Campaign {
+        let updated: Campaign
+        do {
+            updated = try await directory.record(change, inCampaignWithCode: code)
+        } catch let error as CampaignError {
+            throw error
+        } catch {
+            throw CampaignError.directoryUnavailable
+        }
+        book.upsert(updated)
+        persist()
+        return updated
     }
 
     /// Fetches the latest player list for every campaign.

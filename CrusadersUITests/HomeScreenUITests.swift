@@ -137,10 +137,16 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["No players yet. Share the code to invite your party."].exists)
     }
 
-    func testJoinSampleCampaignAsAPlayer() {
+    func testJoinSampleCampaignWithYourCharacter() {
+        createCharacter(named: "Thalia")
+        goHome()
         openCampaignForm("Join campaign")
         fill("campaignForm.field", with: "123456")
         fill("campaignForm.yourName", with: "Aria")
+        let character = app.buttons["campaignForm.character"].firstMatch
+        XCTAssertTrue(character.waitForExistence(timeout: 5))
+        XCTAssertTrue(character.label.hasPrefix("Thalia"), character.label)
+        XCTAssertEqual(character.value as? String, "Selected")
         app.buttons["campaignForm.submit"].tap()
 
         let row = campaignRow(named: "The Sunken Citadel")
@@ -149,9 +155,29 @@ final class HomeScreenUITests: XCTestCase {
         row.tap()
         XCTAssertTrue(app.staticTexts["Sample DM"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Aria"].exists)
+        XCTAssertTrue(element(labelContaining: "Thalia, Level 1").exists)
+
+        // Players see their own inventory but can't add to it.
+        app.buttons["Inventory"].tap()
+        XCTAssertTrue(app.staticTexts["No items yet."].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["inventory.add"].exists)
+        XCTAssertFalse(app.staticTexts["inventory.item.potion-of-healing"].exists, "should not see other players' items")
+    }
+
+    func testJoiningNeedsACharacter() {
+        openCampaignForm("Join campaign")
+        XCTAssertTrue(app.staticTexts["campaignForm.noCharacters"].exists)
+        fill("campaignForm.field", with: "123456")
+        fill("campaignForm.yourName", with: "Aria")
+        app.buttons["campaignForm.submit"].tap()
+        let error = app.staticTexts["campaignForm.error"]
+        XCTAssertTrue(error.waitForExistence(timeout: 10))
+        XCTAssertEqual(error.label, "Pick one of your characters to join with.")
     }
 
     func testJoinWithUnknownCodeShowsError() {
+        createCharacter(named: "Thalia")
+        goHome()
         openCampaignForm("Join campaign")
         fill("campaignForm.field", with: "000001")
         fill("campaignForm.yourName", with: "Aria")
@@ -159,6 +185,47 @@ final class HomeScreenUITests: XCTestCase {
         let error = app.staticTexts["campaignForm.error"]
         XCTAssertTrue(error.waitForExistence(timeout: 10))
         XCTAssertEqual(error.label, "No campaign uses that code.")
+    }
+
+    func testDMAddsAndRemovesInventoryItems() {
+        app.terminate()
+        app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]
+        app.launch()
+
+        app.buttons["home.campaigns"].tap()
+        let row = campaignRow(named: "Test Table")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        XCTAssertTrue(element(labelContaining: "Thorin, Level 1").waitForExistence(timeout: 5))
+
+        app.buttons["Inventory"].tap()
+        let add = app.buttons["inventory.add"]
+        XCTAssertTrue(add.waitForExistence(timeout: 5))
+        add.tap()
+
+        app.steppers["itemPicker.quantity"].buttons["Increment"].tap()
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap()
+        search.typeText("Longsword")
+        let longsword = app.buttons["itemPicker.item.longsword"]
+        XCTAssertTrue(longsword.waitForExistence(timeout: 5))
+        longsword.tap()
+
+        let item = app.staticTexts["inventory.item.longsword"]
+        XCTAssertTrue(item.waitForExistence(timeout: 5))
+        XCTAssertEqual(item.label, "Longsword ×2")
+
+        app.buttons["inventory.remove.longsword"].tap()
+        XCTAssertTrue(app.staticTexts["Longsword ×1"].waitForExistence(timeout: 5))
+        app.buttons["inventory.remove.longsword"].tap()
+        XCTAssertTrue(app.staticTexts["No items yet."].waitForExistence(timeout: 5))
+    }
+
+    /// Back to the home screen from one level down.
+    private func goHome() {
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+        XCTAssertTrue(app.buttons["home.campaigns"].waitForExistence(timeout: 5))
     }
 
     private func openCampaignForm(_ option: String) {

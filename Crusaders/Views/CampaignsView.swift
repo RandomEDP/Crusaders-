@@ -66,78 +66,6 @@ struct CampaignsView: View {
     }
 }
 
-/// One campaign: its join code, the Dungeon Master and the players.
-struct CampaignDetailView: View {
-    let code: String
-    @Environment(AppModel.self) private var model
-
-    var body: some View {
-        let manager = model.campaigns
-        if let campaign = manager.campaign(code: code) {
-            List {
-                Section {
-                    VStack(spacing: 8) {
-                        Text("Join code").font(.subheadline).foregroundStyle(.secondary)
-                        Text(JoinCode.display(campaign.joinCode))
-                            .font(.system(size: 44, weight: .bold, design: .monospaced))
-                            .accessibilityIdentifier("campaign.code")
-                        ShareLink(
-                            item: "Join my Crusaders campaign \"\(campaign.name)\" with code \(campaign.joinCode)",
-                            preview: SharePreview(campaign.name)
-                        ) {
-                            Label("Share code", systemImage: "square.and.arrow.up")
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                } footer: {
-                    Text(manager.role(in: campaign) == .dungeonMaster
-                         ? "Players enter this code in Join campaign."
-                         : "You joined as a player.")
-                }
-
-                Section("Dungeon Master") {
-                    memberRow(campaign.dungeonMaster, isMe: campaign.dungeonMaster.id == manager.me.id)
-                        .accessibilityIdentifier("campaign.dm")
-                }
-
-                Section("Players") {
-                    if campaign.players.isEmpty {
-                        Text("No players yet. Share the code to invite your party.")
-                            .foregroundStyle(.secondary)
-                    }
-                    ForEach(campaign.players) { player in
-                        memberRow(player, isMe: player.id == manager.me.id)
-                            .accessibilityIdentifier("campaign.player")
-                    }
-                }
-
-                if !manager.isShared {
-                    Section {
-                        Text("Until iCloud is switched on, campaigns stay on this phone, so friends can't join yet. Try joining the sample campaign with code \(JoinCode.display(InMemoryCampaignDirectory.sampleCode)).")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-            }
-            .navigationTitle(campaign.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .refreshable { await manager.refresh() }
-        } else {
-            ContentUnavailableView("Campaign not found", systemImage: "map")
-        }
-    }
-
-    private func memberRow(_ member: CampaignMember, isMe: Bool) -> some View {
-        HStack {
-            Text(member.name)
-            if isMe {
-                Text("(you)").foregroundStyle(.secondary)
-            }
-        }
-    }
-}
-
 struct CampaignFormView: View {
     enum Mode {
         case create, join
@@ -151,6 +79,7 @@ struct CampaignFormView: View {
     @State private var errorMessage: String?
     @State private var isWorking = false
     @State private var created: Campaign?
+    @State private var characterID: PlayerCharacter.ID?
 
     var body: some View {
         NavigationStack {
@@ -198,6 +127,7 @@ struct CampaignFormView: View {
             }
             .onAppear {
                 if yourName.isEmpty { yourName = model.campaigns.me.name }
+                if characterID == nil { characterID = model.roster.characters.first?.id }
             }
         }
     }
@@ -224,6 +154,33 @@ struct CampaignFormView: View {
                  ? "You'll be the Dungeon Master. We'll make a 6-digit code to share with your players."
                  : "Ask your Dungeon Master for the 6-digit code. You'll join as a player.")
         }
+        if mode == .join {
+            Section("Your character") {
+                if model.roster.characters.isEmpty {
+                    Text("Create a character in Characters first, then come back to join.")
+                        .foregroundStyle(.secondary)
+                        .accessibilityIdentifier("campaignForm.noCharacters")
+                }
+                ForEach(model.roster.characters) { character in
+                    Button {
+                        characterID = character.id
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(character.name).foregroundStyle(.primary)
+                                Text(character.summary).font(.subheadline).foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            if characterID == character.id {
+                                Image(systemName: "checkmark").foregroundStyle(.tint)
+                            }
+                        }
+                    }
+                    .accessibilityIdentifier("campaignForm.character")
+                    .accessibilityValue(characterID == character.id ? "Selected" : "")
+                }
+            }
+        }
         if let errorMessage {
             Text(errorMessage)
                 .foregroundStyle(.red)
@@ -239,7 +196,7 @@ struct CampaignFormView: View {
             case .create:
                 created = try await model.createCampaign(name: text, yourName: yourName)
             case .join:
-                try await model.joinCampaign(code: text, yourName: yourName)
+                try await model.joinCampaign(code: text, yourName: yourName, characterID: characterID)
                 dismiss()
             }
         } catch {
