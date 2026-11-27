@@ -1,0 +1,57 @@
+name: CI
+
+# Runs tests on every push to any branch (the results show on its pull request too).
+# This workflow never signs or uploads anything.
+on:
+  push:
+    branches: ["**"]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kit-tests:
+    name: CrusadersKit tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Run package tests
+        run: swift test --package-path CrusadersKit
+
+  app-tests:
+    name: App unit + UI tests
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+      - name: Generate Xcode project
+        run: |
+          brew install xcodegen
+          xcodegen generate
+      - name: Pick an iPhone simulator
+        id: sim
+        run: echo "udid=$(scripts/pick-simulator.sh)" >> "$GITHUB_OUTPUT"
+      - name: Build and test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project Crusaders.xcodeproj \
+            -scheme Crusaders \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -resultBundlePath TestResults.xcresult \
+            CODE_SIGNING_ALLOWED=NO
+      - name: Upload test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: TestResults
+          path: TestResults.xcresult

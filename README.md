@@ -45,6 +45,5 @@ Repository secrets (Settings > Secrets and variables > Actions):
 | `ASC_KEY_ID` | App Store Connect API key ID |
 | `ASC_ISSUER_ID` | App Store Connect API issuer ID |
 | `ASC_KEY_P8` | Full text of the `.p8` key file, including the BEGIN/END lines |
-| `APPLE_TEAM_ID` | Apple Developer Team ID |
 
-The API key needs the **Admin** role so Xcode can create the distribution certificate and profile automatically. The app record for bundle ID `com.ed89596.crusaders` must exist in App Store Connect.
+The API key needs the **Admin** role so Xcode can create the distribution certificate and profile automatically. The team ID (`DP3V39HSP5`) is set in `project.yml`. The app record for bundle ID `com.randomedp.Crusaders` must exist in App Store Connect.
