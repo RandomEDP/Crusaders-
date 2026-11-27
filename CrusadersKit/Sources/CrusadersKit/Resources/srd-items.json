@@ -1,0 +1,3625 @@
+{
+ "source": "SRD 5.1",
+ "items": [
+  {
+   "id": "club",
+   "name": "Club",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "bludgeoning",
+    "properties": [
+     "light"
+    ]
+   }
+  },
+  {
+   "id": "dagger",
+   "name": "Dagger",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 1,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "piercing",
+    "properties": [
+     "finesse",
+     "light",
+     "thrown"
+    ],
+    "normalRange": 20,
+    "longRange": 60
+   }
+  },
+  {
+   "id": "greatclub",
+   "name": "Greatclub",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "sp"
+   },
+   "weight": 10,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "bludgeoning",
+    "properties": [
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "handaxe",
+   "name": "Handaxe",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "slashing",
+    "properties": [
+     "light",
+     "thrown"
+    ],
+    "normalRange": 20,
+    "longRange": 60
+   }
+  },
+  {
+   "id": "javelin",
+   "name": "Javelin",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "thrown"
+    ],
+    "normalRange": 30,
+    "longRange": 120
+   }
+  },
+  {
+   "id": "light-hammer",
+   "name": "Light Hammer",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "bludgeoning",
+    "properties": [
+     "light",
+     "thrown"
+    ],
+    "normalRange": 20,
+    "longRange": 60
+   }
+  },
+  {
+   "id": "mace",
+   "name": "Mace",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 4,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "bludgeoning",
+    "properties": []
+   }
+  },
+  {
+   "id": "quarterstaff",
+   "name": "Quarterstaff",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "sp"
+   },
+   "weight": 4,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "bludgeoning",
+    "properties": [
+     "versatile"
+    ],
+    "versatileDamage": "1d8"
+   }
+  },
+  {
+   "id": "sickle",
+   "name": "Sickle",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "slashing",
+    "properties": [
+     "light"
+    ]
+   }
+  },
+  {
+   "id": "spear",
+   "name": "Spear",
+   "category": "weapons",
+   "group": "Simple Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "thrown",
+     "versatile"
+    ],
+    "normalRange": 20,
+    "longRange": 60,
+    "versatileDamage": "1d8"
+   }
+  },
+  {
+   "id": "light-crossbow",
+   "name": "Light Crossbow",
+   "category": "weapons",
+   "group": "Simple Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 5,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "loading",
+     "twoHanded"
+    ],
+    "normalRange": 80,
+    "longRange": 320
+   }
+  },
+  {
+   "id": "dart",
+   "name": "Dart",
+   "category": "weapons",
+   "group": "Simple Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "cp"
+   },
+   "weight": 0.25,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "piercing",
+    "properties": [
+     "finesse",
+     "thrown"
+    ],
+    "normalRange": 20,
+    "longRange": 60
+   }
+  },
+  {
+   "id": "shortbow",
+   "name": "Shortbow",
+   "category": "weapons",
+   "group": "Simple Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "twoHanded"
+    ],
+    "normalRange": 80,
+    "longRange": 320
+   }
+  },
+  {
+   "id": "sling",
+   "name": "Sling",
+   "category": "weapons",
+   "group": "Simple Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 0,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "bludgeoning",
+    "properties": [
+     "ammunition"
+    ],
+    "normalRange": 30,
+    "longRange": 120
+   }
+  },
+  {
+   "id": "battleaxe",
+   "name": "Battleaxe",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 4,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "slashing",
+    "properties": [
+     "versatile"
+    ],
+    "versatileDamage": "1d10"
+   }
+  },
+  {
+   "id": "flail",
+   "name": "Flail",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "bludgeoning",
+    "properties": []
+   }
+  },
+  {
+   "id": "glaive",
+   "name": "Glaive",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 20,
+    "coin": "gp"
+   },
+   "weight": 6,
+   "weapon": {
+    "damage": "1d10",
+    "damageType": "slashing",
+    "properties": [
+     "heavy",
+     "reach",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "greataxe",
+   "name": "Greataxe",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 7,
+   "weapon": {
+    "damage": "1d12",
+    "damageType": "slashing",
+    "properties": [
+     "heavy",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "greatsword",
+   "name": "Greatsword",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 6,
+   "weapon": {
+    "damage": "2d6",
+    "damageType": "slashing",
+    "properties": [
+     "heavy",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "halberd",
+   "name": "Halberd",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 20,
+    "coin": "gp"
+   },
+   "weight": 6,
+   "weapon": {
+    "damage": "1d10",
+    "damageType": "slashing",
+    "properties": [
+     "heavy",
+     "reach",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "lance",
+   "name": "Lance",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "You have disadvantage when you use a lance to attack a target within 5 feet of you. A lance requires two hands to wield when you aren't mounted.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 6,
+   "weapon": {
+    "damage": "1d12",
+    "damageType": "piercing",
+    "properties": [
+     "reach",
+     "special"
+    ]
+   }
+  },
+  {
+   "id": "longsword",
+   "name": "Longsword",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "slashing",
+    "properties": [
+     "versatile"
+    ],
+    "versatileDamage": "1d10"
+   }
+  },
+  {
+   "id": "maul",
+   "name": "Maul",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 10,
+   "weapon": {
+    "damage": "2d6",
+    "damageType": "bludgeoning",
+    "properties": [
+     "heavy",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "morningstar",
+   "name": "Morningstar",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 4,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "piercing",
+    "properties": []
+   }
+  },
+  {
+   "id": "pike",
+   "name": "Pike",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 18,
+   "weapon": {
+    "damage": "1d10",
+    "damageType": "piercing",
+    "properties": [
+     "heavy",
+     "reach",
+     "twoHanded"
+    ]
+   }
+  },
+  {
+   "id": "rapier",
+   "name": "Rapier",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "piercing",
+    "properties": [
+     "finesse"
+    ]
+   }
+  },
+  {
+   "id": "scimitar",
+   "name": "Scimitar",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "slashing",
+    "properties": [
+     "finesse",
+     "light"
+    ]
+   }
+  },
+  {
+   "id": "shortsword",
+   "name": "Shortsword",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "finesse",
+     "light"
+    ]
+   }
+  },
+  {
+   "id": "trident",
+   "name": "Trident",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 4,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "thrown",
+     "versatile"
+    ],
+    "normalRange": 20,
+    "longRange": 60,
+    "versatileDamage": "1d8"
+   }
+  },
+  {
+   "id": "war-pick",
+   "name": "War Pick",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "piercing",
+    "properties": []
+   }
+  },
+  {
+   "id": "warhammer",
+   "name": "Warhammer",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "bludgeoning",
+    "properties": [
+     "versatile"
+    ],
+    "versatileDamage": "1d10"
+   }
+  },
+  {
+   "id": "whip",
+   "name": "Whip",
+   "category": "weapons",
+   "group": "Martial Melee",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "1d4",
+    "damageType": "slashing",
+    "properties": [
+     "finesse",
+     "reach"
+    ]
+   }
+  },
+  {
+   "id": "blowgun",
+   "name": "Blowgun",
+   "category": "weapons",
+   "group": "Martial Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 1,
+   "weapon": {
+    "damage": "1",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "loading"
+    ],
+    "normalRange": 25,
+    "longRange": 100
+   }
+  },
+  {
+   "id": "hand-crossbow",
+   "name": "Hand Crossbow",
+   "category": "weapons",
+   "group": "Martial Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 75,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "1d6",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "light",
+     "loading"
+    ],
+    "normalRange": 30,
+    "longRange": 120
+   }
+  },
+  {
+   "id": "heavy-crossbow",
+   "name": "Heavy Crossbow",
+   "category": "weapons",
+   "group": "Martial Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 18,
+   "weapon": {
+    "damage": "1d10",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "heavy",
+     "loading",
+     "twoHanded"
+    ],
+    "normalRange": 100,
+    "longRange": 400
+   }
+  },
+  {
+   "id": "longbow",
+   "name": "Longbow",
+   "category": "weapons",
+   "group": "Martial Ranged",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 2,
+   "weapon": {
+    "damage": "1d8",
+    "damageType": "piercing",
+    "properties": [
+     "ammunition",
+     "heavy",
+     "twoHanded"
+    ],
+    "normalRange": 150,
+    "longRange": 600
+   }
+  },
+  {
+   "id": "net",
+   "name": "Net",
+   "category": "weapons",
+   "group": "Martial Ranged",
+   "description": "A Large or smaller creature hit by a net is restrained until it is freed. A creature can use its action to make a DC 10 Strength check, freeing itself or another creature within its reach on a success. Dealing 5 slashing damage to the net (AC 10) also frees the creature. When you use an action, bonus action, or reaction to attack with a net, you can make only one attack.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 3,
+   "weapon": {
+    "damage": "0",
+    "damageType": "none",
+    "properties": [
+     "special",
+     "thrown"
+    ],
+    "normalRange": 5,
+    "longRange": 15
+   }
+  },
+  {
+   "id": "weapon-plus-1",
+   "name": "Weapon, +1",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any weapon. You have a +1 bonus to attack and damage rolls made with this magic weapon.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "weapon-plus-2",
+   "name": "Weapon, +2",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any weapon. You have a +2 bonus to attack and damage rolls made with this magic weapon.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "weapon-plus-3",
+   "name": "Weapon, +3",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any weapon. You have a +3 bonus to attack and damage rolls made with this magic weapon.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "berserker-axe",
+   "name": "Berserker Axe",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any axe. +1 to attack and damage rolls, and your hit point maximum rises by 1 per level while attuned. The axe is cursed: when a hostile creature damages you, you must succeed on a DC 15 Wisdom save or go berserk.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "dagger-of-venom",
+   "name": "Dagger of Venom",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "+1 to attack and damage rolls. As an action, coat the blade in poison for 1 minute (once per dawn): a creature hit must succeed on a DC 15 Constitution save or take 2d10 poison damage and be poisoned for 1 minute.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "dancing-sword",
+   "name": "Dancing Sword",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. As a bonus action, toss it into the air and speak the command word; it hovers, flies up to 30 feet and attacks one creature of your choice within 5 feet of it, using your attack roll and ability modifier, for up to four turns.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "defender",
+   "name": "Defender",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. +3 to attack and damage rolls. The first time you attack with it on each turn, you can move some or all of the bonus to your Armor Class until your next turn.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "dragon-slayer",
+   "name": "Dragon Slayer",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. +1 to attack and damage rolls. When you hit a dragon with it, the dragon takes an extra 3d6 damage of the weapon's type.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "dwarven-thrower",
+   "name": "Dwarven Thrower",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Warhammer. +3 to attack and damage rolls. It has the thrown property (20/60) and returns to your hand after a ranged attack. A dwarf deals an extra 1d8 damage when throwing it, or 2d8 against a giant.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "flame-tongue",
+   "name": "Flame Tongue",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. Use a bonus action to make flames erupt from the blade, shedding bright light 40 feet. While ablaze, it deals an extra 2d6 fire damage on a hit.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "frost-brand",
+   "name": "Frost Brand",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. Deals an extra 1d6 cold damage on a hit and grants resistance to fire damage. In freezing temperatures it sheds light. Once per hour you can extinguish nearby nonmagical flames.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "giant-slayer",
+   "name": "Giant Slayer",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any axe or sword. +1 to attack and damage rolls. When you hit a giant with it, the giant takes an extra 2d6 damage and must succeed on a DC 15 Strength save or fall prone.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "hammer-of-thunderbolts",
+   "name": "Hammer of Thunderbolts",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Maul. +1 to attack and damage rolls. While attuned and wearing a belt of giant strength and gauntlets of ogre power, your Strength rises by 4 (max 30) and a hit can stun a giant. It can be thrown to unleash a thunderclap.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "holy-avenger",
+   "name": "Holy Avenger",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword, attunement by a paladin. +3 to attack and damage rolls. Fiends and undead take an extra 2d10 radiant damage. While drawn it creates a 10-foot aura that grants you and allies advantage on saves against spells and magical effects.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "javelin-of-lightning",
+   "name": "Javelin of Lightning",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "When you hurl it and speak its command word, it becomes a 5-foot-wide, 120-foot line of lightning. Each creature in the line other than the target must make a DC 13 Dexterity save, taking 4d6 lightning damage on a failure. Recharges at dawn.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "luck-blade",
+   "name": "Luck Blade",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. +1 to attack and damage rolls and +1 to saving throws. Once per dawn you can reroll one attack roll, ability check or save. It may hold 1d4 - 1 charges of the wish spell.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "mace-of-disruption",
+   "name": "Mace of Disruption",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "When you hit a fiend or undead, it takes an extra 2d6 radiant damage. If the target has 25 hit points or fewer after the damage, it must succeed on a DC 15 Wisdom save or be destroyed.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "mace-of-smiting",
+   "name": "Mace of Smiting",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "+1 to attack and damage rolls (+3 against constructs). A 20 on the attack roll deals an extra 2d6 bludgeoning damage, or 4d6 to a construct.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "mace-of-terror",
+   "name": "Mace of Terror",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Holds 3 charges. As an action, spend 1 charge to release a wave of terror: each creature of your choice within 30 feet must succeed on a DC 15 Wisdom save or be frightened for 1 minute. Regains 1d3 charges at dawn.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "nine-lives-stealer",
+   "name": "Nine Lives Stealer",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. +2 to attack and damage rolls. It has 1d8 + 1 charges. On a critical hit against a creature with fewer than 100 hit points, it can spend a charge to kill the creature unless it succeeds on a DC 15 Constitution save.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "oathbow",
+   "name": "Oathbow",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Longbow. When you nock an arrow you can swear an oath against one target. You have advantage on attack rolls against your sworn enemy, which takes an extra 3d6 piercing damage on each hit, and it can't benefit from cover against you.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "scimitar-of-speed",
+   "name": "Scimitar of Speed",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "+2 to attack and damage rolls. You can make one attack with it as a bonus action on each of your turns.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "sun-blade",
+   "name": "Sun Blade",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "A hilt that becomes a longsword of radiance (finesse, deals radiant damage). +2 to attack and damage rolls; undead take an extra 1d8 radiant damage. It sheds bright sunlight in a radius you can adjust.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "sword-of-life-stealing",
+   "name": "Sword of Life Stealing",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. When you roll a 20 on an attack roll against a creature that isn't a construct or undead, it takes an extra 10 necrotic damage and you gain 10 temporary hit points.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "sword-of-sharpness",
+   "name": "Sword of Sharpness",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any slashing sword. Deals maximum damage to objects. On a 20 against a creature, it takes an extra 4d6 slashing damage, then roll a d20: on a 20 you lop off one of its limbs. It can shed bright light on command.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "sword-of-wounding",
+   "name": "Sword of Wounding",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any sword. Hit points lost to this weapon can be regained only through a short or long rest. Once per turn on a hit, you can wound the target so it takes 1d4 necrotic damage at the start of each of its turns until it succeeds on a DC 15 Constitution save.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "trident-of-fish-command",
+   "name": "Trident of Fish Command",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Holds 3 charges. While carrying it, you can use an action to cast dominate beast (save DC 15) on a beast with an innate swimming speed. Regains 1d3 charges at dawn.",
+   "requiresAttunement": true,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "vicious-weapon",
+   "name": "Vicious Weapon",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any weapon. When you roll a 20 on your attack roll with this magic weapon, your critical hit deals an extra 2d6 damage of the weapon's type.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "vorpal-sword",
+   "name": "Vorpal Sword",
+   "category": "weapons",
+   "group": "Magic Weapons",
+   "description": "Any slashing sword. +3 to attack and damage rolls and ignores resistance to slashing damage. On a 20 against a creature with at least one head, you cut off one of its heads; if it can't survive without it, it dies.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "padded",
+   "name": "Padded",
+   "category": "armour",
+   "group": "Light Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 8,
+   "armour": {
+    "kind": "light",
+    "baseArmorClass": 11,
+    "addsDexterity": true,
+    "stealthDisadvantage": true
+   }
+  },
+  {
+   "id": "leather",
+   "name": "Leather",
+   "category": "armour",
+   "group": "Light Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 10,
+   "armour": {
+    "kind": "light",
+    "baseArmorClass": 11,
+    "addsDexterity": true,
+    "stealthDisadvantage": false
+   }
+  },
+  {
+   "id": "studded-leather",
+   "name": "Studded Leather",
+   "category": "armour",
+   "group": "Light Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 45,
+    "coin": "gp"
+   },
+   "weight": 13,
+   "armour": {
+    "kind": "light",
+    "baseArmorClass": 12,
+    "addsDexterity": true,
+    "stealthDisadvantage": false
+   }
+  },
+  {
+   "id": "hide",
+   "name": "Hide",
+   "category": "armour",
+   "group": "Medium Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 12,
+   "armour": {
+    "kind": "medium",
+    "baseArmorClass": 12,
+    "addsDexterity": true,
+    "stealthDisadvantage": false,
+    "maxDexterityBonus": 2
+   }
+  },
+  {
+   "id": "chain-shirt",
+   "name": "Chain Shirt",
+   "category": "armour",
+   "group": "Medium Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 20,
+   "armour": {
+    "kind": "medium",
+    "baseArmorClass": 13,
+    "addsDexterity": true,
+    "stealthDisadvantage": false,
+    "maxDexterityBonus": 2
+   }
+  },
+  {
+   "id": "scale-mail",
+   "name": "Scale Mail",
+   "category": "armour",
+   "group": "Medium Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 45,
+   "armour": {
+    "kind": "medium",
+    "baseArmorClass": 14,
+    "addsDexterity": true,
+    "stealthDisadvantage": true,
+    "maxDexterityBonus": 2
+   }
+  },
+  {
+   "id": "breastplate",
+   "name": "Breastplate",
+   "category": "armour",
+   "group": "Medium Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 400,
+    "coin": "gp"
+   },
+   "weight": 20,
+   "armour": {
+    "kind": "medium",
+    "baseArmorClass": 14,
+    "addsDexterity": true,
+    "stealthDisadvantage": false,
+    "maxDexterityBonus": 2
+   }
+  },
+  {
+   "id": "half-plate",
+   "name": "Half Plate",
+   "category": "armour",
+   "group": "Medium Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 750,
+    "coin": "gp"
+   },
+   "weight": 40,
+   "armour": {
+    "kind": "medium",
+    "baseArmorClass": 15,
+    "addsDexterity": true,
+    "stealthDisadvantage": true,
+    "maxDexterityBonus": 2
+   }
+  },
+  {
+   "id": "ring-mail",
+   "name": "Ring Mail",
+   "category": "armour",
+   "group": "Heavy Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 40,
+   "armour": {
+    "kind": "heavy",
+    "baseArmorClass": 14,
+    "addsDexterity": false,
+    "stealthDisadvantage": true
+   }
+  },
+  {
+   "id": "chain-mail",
+   "name": "Chain Mail",
+   "category": "armour",
+   "group": "Heavy Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 75,
+    "coin": "gp"
+   },
+   "weight": 55,
+   "armour": {
+    "kind": "heavy",
+    "baseArmorClass": 16,
+    "addsDexterity": false,
+    "stealthDisadvantage": true,
+    "strengthRequirement": 13
+   }
+  },
+  {
+   "id": "splint",
+   "name": "Splint",
+   "category": "armour",
+   "group": "Heavy Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 200,
+    "coin": "gp"
+   },
+   "weight": 60,
+   "armour": {
+    "kind": "heavy",
+    "baseArmorClass": 17,
+    "addsDexterity": false,
+    "stealthDisadvantage": true,
+    "strengthRequirement": 15
+   }
+  },
+  {
+   "id": "plate",
+   "name": "Plate",
+   "category": "armour",
+   "group": "Heavy Armour",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1500,
+    "coin": "gp"
+   },
+   "weight": 65,
+   "armour": {
+    "kind": "heavy",
+    "baseArmorClass": 18,
+    "addsDexterity": false,
+    "stealthDisadvantage": true,
+    "strengthRequirement": 15
+   }
+  },
+  {
+   "id": "shield",
+   "name": "Shield",
+   "category": "armour",
+   "group": "Shields",
+   "description": "Wielding a shield increases your Armor Class by 2. You can benefit from only one shield at a time.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 6,
+   "armour": {
+    "kind": "shield",
+    "baseArmorClass": 2,
+    "addsDexterity": false,
+    "stealthDisadvantage": false
+   }
+  },
+  {
+   "id": "armor-plus-1",
+   "name": "Armor, +1",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Light, medium or heavy. You have a +1 bonus to AC while wearing this armour.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "armor-plus-2",
+   "name": "Armor, +2",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Light, medium or heavy. You have a +2 bonus to AC while wearing this armour.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "armor-plus-3",
+   "name": "Armor, +3",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Light, medium or heavy. You have a +3 bonus to AC while wearing this armour.",
+   "requiresAttunement": false,
+   "rarity": "legendary"
+  },
+  {
+   "id": "adamantine-armor",
+   "name": "Adamantine Armor",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Medium or heavy, not hide. While you're wearing it, any critical hit against you becomes a normal hit.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "armor-of-invulnerability",
+   "name": "Armor of Invulnerability",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Plate. You have resistance to nonmagical damage. Once per dawn, as an action, you become immune to nonmagical damage for 10 minutes.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "armor-of-resistance",
+   "name": "Armor of Resistance",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Light, medium or heavy. You have resistance to one type of damage while you wear this armour, determined when it is made.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "armor-of-vulnerability",
+   "name": "Armor of Vulnerability",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Plate. Grants resistance to one of bludgeoning, piercing or slashing damage, but is cursed with vulnerability to the other two.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "demon-armor",
+   "name": "Demon Armor",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Plate. +1 to AC, you understand and speak Abyssal, and the clawed gauntlets make unarmed strikes deal 1d8 slashing damage with a +1 bonus. Cursed: you can't remove it until targeted by remove curse.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "dragon-scale-mail",
+   "name": "Dragon Scale Mail",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Scale mail. +1 to AC, advantage on saves against the Frightful Presence and breath weapons of dragons, and resistance to one damage type matching the dragon it was made from.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "dwarven-plate",
+   "name": "Dwarven Plate",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Plate. +2 to AC. When an effect moves you against your will along the ground, you can use your reaction to reduce the distance by up to 10 feet.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "efreeti-chain",
+   "name": "Efreeti Chain",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Chain mail. +3 to AC, immunity to fire damage, you understand and speak Primordial, and you can stand on and walk across molten rock.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "elven-chain",
+   "name": "Elven Chain",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Chain shirt. +1 to AC. You are considered proficient with this armour even if you lack proficiency with medium armour.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "glamoured-studded-leather",
+   "name": "Glamoured Studded Leather",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Studded leather. +1 to AC. As a bonus action, you can make the armour look like a normal set of clothing or some other kind of armour.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "mithral-armor",
+   "name": "Mithral Armor",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Medium or heavy, not hide. Mithral is light and flexible: no Stealth disadvantage and no Strength requirement.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "plate-armor-of-etherealness",
+   "name": "Plate Armor of Etherealness",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Plate. While wearing it, you can speak its command word to gain the effect of the etherealness spell for 10 minutes. Once per dawn.",
+   "requiresAttunement": true,
+   "rarity": "legendary"
+  },
+  {
+   "id": "shield-plus-1",
+   "name": "Shield, +1",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "While holding this shield, you have a +1 bonus to AC in addition to the shield's normal bonus.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "shield-plus-2",
+   "name": "Shield, +2",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "While holding this shield, you have a +2 bonus to AC in addition to the shield's normal bonus.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "shield-plus-3",
+   "name": "Shield, +3",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "While holding this shield, you have a +3 bonus to AC in addition to the shield's normal bonus.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "animated-shield",
+   "name": "Animated Shield",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "As a bonus action, speak its command word to make it animate for 1 minute. It floats in your space to protect you, leaving your hands free.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "arrow-catching-shield",
+   "name": "Arrow-Catching Shield",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "+2 bonus to AC against ranged attacks in addition to the shield's normal bonus. When an attacker makes a ranged attack against a target within 5 feet of you, you can use your reaction to become the target instead.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "shield-of-missile-attraction",
+   "name": "Shield of Missile Attraction",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "Resistance to damage from ranged weapon attacks. Cursed: whenever a ranged weapon attack is made against a target within 10 feet of you, you become the target instead.",
+   "requiresAttunement": true,
+   "rarity": "rare"
+  },
+  {
+   "id": "spellguard-shield",
+   "name": "Spellguard Shield",
+   "category": "armour",
+   "group": "Magic Armour",
+   "description": "While holding this shield, you have advantage on saving throws against spells and other magical effects, and spell attacks have disadvantage against you.",
+   "requiresAttunement": true,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "arrows",
+   "name": "Arrows (20)",
+   "category": "ammunition",
+   "group": "Ammunition",
+   "description": "Ammunition for shortbows and longbows. Recover half your expended ammunition by spending a minute searching after a battle.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "blowgun-needles",
+   "name": "Blowgun Needles (50)",
+   "category": "ammunition",
+   "group": "Ammunition",
+   "description": "Ammunition for blowguns.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "crossbow-bolts",
+   "name": "Crossbow Bolts (20)",
+   "category": "ammunition",
+   "group": "Ammunition",
+   "description": "Ammunition for light, hand and heavy crossbows.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1.5
+  },
+  {
+   "id": "sling-bullets",
+   "name": "Sling Bullets (20)",
+   "category": "ammunition",
+   "group": "Ammunition",
+   "description": "Ammunition for slings.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 4,
+    "coin": "cp"
+   },
+   "weight": 1.5
+  },
+  {
+   "id": "ammunition-plus-1",
+   "name": "Ammunition, +1",
+   "category": "ammunition",
+   "group": "Magic Ammunition",
+   "description": "Arrows, bolts, needles or bullets. +1 bonus to attack and damage rolls. Once it hits a target, it is no longer magical.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "ammunition-plus-2",
+   "name": "Ammunition, +2",
+   "category": "ammunition",
+   "group": "Magic Ammunition",
+   "description": "Arrows, bolts, needles or bullets. +2 bonus to attack and damage rolls. Once it hits a target, it is no longer magical.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "ammunition-plus-3",
+   "name": "Ammunition, +3",
+   "category": "ammunition",
+   "group": "Magic Ammunition",
+   "description": "Arrows, bolts, needles or bullets. +3 bonus to attack and damage rolls. Once it hits a target, it is no longer magical.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "arrow-of-slaying",
+   "name": "Arrow of Slaying",
+   "category": "ammunition",
+   "group": "Magic Ammunition",
+   "description": "Made to kill one type of creature. If it hits that kind of creature, the target must make a DC 17 Constitution save, taking an extra 6d10 piercing damage on a failure or half as much on a success. It then becomes nonmagical.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-healing",
+   "name": "Potion of Healing",
+   "category": "potions",
+   "group": "Healing",
+   "description": "You regain 2d4 + 2 hit points when you drink this potion. Drinking or giving it takes an action.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 0.5,
+   "rarity": "common"
+  },
+  {
+   "id": "potion-of-greater-healing",
+   "name": "Potion of Greater Healing",
+   "category": "potions",
+   "group": "Healing",
+   "description": "You regain 4d4 + 4 hit points when you drink this potion.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-superior-healing",
+   "name": "Potion of Superior Healing",
+   "category": "potions",
+   "group": "Healing",
+   "description": "You regain 8d4 + 8 hit points when you drink this potion.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-supreme-healing",
+   "name": "Potion of Supreme Healing",
+   "category": "potions",
+   "group": "Healing",
+   "description": "You regain 10d4 + 20 hit points when you drink this potion.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-animal-friendship",
+   "name": "Potion of Animal Friendship",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "For 1 hour you can cast animal friendship (save DC 13) at will.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-clairvoyance",
+   "name": "Potion of Clairvoyance",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the effect of the clairvoyance spell.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-climbing",
+   "name": "Potion of Climbing",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "For 1 hour you gain a climbing speed equal to your walking speed and advantage on Strength (Athletics) checks to climb.",
+   "requiresAttunement": false,
+   "rarity": "common"
+  },
+  {
+   "id": "potion-of-diminution",
+   "name": "Potion of Diminution",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the reduce effect of the enlarge/reduce spell for 1d4 hours (no concentration required).",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-flying",
+   "name": "Potion of Flying",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain a flying speed equal to your walking speed for 1 hour and can hover.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-gaseous-form",
+   "name": "Potion of Gaseous Form",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the effect of the gaseous form spell for 1 hour (no concentration required) or until you end it as a bonus action.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-hill-giant-strength",
+   "name": "Potion of Hill Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 21 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-frost-giant-strength",
+   "name": "Potion of Frost Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 23 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-stone-giant-strength",
+   "name": "Potion of Stone Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 23 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-fire-giant-strength",
+   "name": "Potion of Fire Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 25 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-cloud-giant-strength",
+   "name": "Potion of Cloud Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 27 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-storm-giant-strength",
+   "name": "Potion of Storm Giant Strength",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Your Strength score becomes 29 for 1 hour. It has no effect if your Strength is already equal to or greater than that score.",
+   "requiresAttunement": false,
+   "rarity": "legendary"
+  },
+  {
+   "id": "potion-of-growth",
+   "name": "Potion of Growth",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the enlarge effect of the enlarge/reduce spell for 1d4 hours (no concentration required).",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-heroism",
+   "name": "Potion of Heroism",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "For 1 hour you gain 10 temporary hit points and are under the effect of the bless spell (no concentration required).",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-invisibility",
+   "name": "Potion of Invisibility",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You become invisible for 1 hour. Anything you wear or carry is invisible too. The effect ends early if you attack or cast a spell.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-mind-reading",
+   "name": "Potion of Mind Reading",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the effect of the detect thoughts spell (save DC 13).",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "potion-of-poison",
+   "name": "Potion of Poison",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Looks like a healing potion. You take 3d6 poison damage and must succeed on a DC 13 Constitution save or be poisoned; you take 3d6 poison damage at the start of each turn until you succeed.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-resistance",
+   "name": "Potion of Resistance",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You have resistance to one type of damage, set when it is made, for 1 hour.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "potion-of-speed",
+   "name": "Potion of Speed",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You gain the effect of the haste spell for 1 minute (no concentration required), without the wave of lethargy when it ends.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "potion-of-water-breathing",
+   "name": "Potion of Water Breathing",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "You can breathe underwater for 1 hour.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "oil-of-etherealness",
+   "name": "Oil of Etherealness",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Takes 10 minutes to apply to a Medium or smaller creature, who then gains the effect of the etherealness spell for 1 hour.",
+   "requiresAttunement": false,
+   "rarity": "rare"
+  },
+  {
+   "id": "oil-of-sharpness",
+   "name": "Oil of Sharpness",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Coats one slashing or piercing weapon or up to 5 pieces of such ammunition. For 1 hour the coated item is magical and has a +3 bonus to attack and damage rolls.",
+   "requiresAttunement": false,
+   "rarity": "veryRare"
+  },
+  {
+   "id": "oil-of-slipperiness",
+   "name": "Oil of Slipperiness",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "Applied to a creature, it grants the effect of freedom of movement for 8 hours. Poured on the ground, it covers a 10-foot square, duplicating the grease spell for 8 hours.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "philter-of-love",
+   "name": "Philter of Love",
+   "category": "potions",
+   "group": "Magic Potions & Oils",
+   "description": "The next time you see a creature within 10 minutes after drinking it, you become charmed by that creature for 1 hour.",
+   "requiresAttunement": false,
+   "rarity": "uncommon"
+  },
+  {
+   "id": "acid",
+   "name": "Acid (vial)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "As an action, splash it on a creature within 5 feet or throw it up to 20 feet. Make a ranged attack treating it as an improvised weapon; on a hit the target takes 2d6 acid damage.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "alchemists-fire",
+   "name": "Alchemist's Fire (flask)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "Sticky fluid that ignites in air. Throw it up to 20 feet as a ranged attack; on a hit the target takes 1d4 fire damage at the start of each of its turns until someone uses an action to make a DC 10 Dexterity check to put it out.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "antitoxin",
+   "name": "Antitoxin (vial)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "A creature that drinks it gains advantage on saving throws against poison for 1 hour. It confers no benefit to undead or constructs.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "holy-water",
+   "name": "Holy Water (flask)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "Splash it on a creature within 5 feet or throw it up to 20 feet as a ranged attack. A fiend or undead hit takes 2d6 radiant damage.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "basic-poison",
+   "name": "Poison, Basic (vial)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "As an action, coat one slashing or piercing weapon or up to three pieces of ammunition. A creature hit must make a DC 10 Constitution save or take 1d4 poison damage. Lasts 1 minute once applied.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 100,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "oil",
+   "name": "Oil (flask)",
+   "category": "potions",
+   "group": "Alchemical",
+   "description": "Splash or throw it to cover a target; if it then takes fire damage before the oil dries (1 minute), it takes an extra 5 fire damage. Poured on the ground it covers a 5-foot square and burns for 2 rounds if lit, dealing 5 fire damage.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "abacus",
+   "name": "Abacus",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "backpack",
+   "name": "Backpack",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1 cubic foot or 30 pounds of gear.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "ball-bearings-bag-of-1-000",
+   "name": "Ball Bearings (bag of 1,000)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "As an action, spill them to cover a 10-foot square. A creature moving across must succeed on a DC 10 Dexterity save or fall prone.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "barrel",
+   "name": "Barrel",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 40 gallons of liquid or 4 cubic feet of solids.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 70
+  },
+  {
+   "id": "basket",
+   "name": "Basket",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 2 cubic feet or 40 pounds of gear.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 4,
+    "coin": "sp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "bedroll",
+   "name": "Bedroll",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 7
+  },
+  {
+   "id": "bell",
+   "name": "Bell",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "blanket",
+   "name": "Blanket",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "block-and-tackle",
+   "name": "Block and Tackle",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Lets you hoist up to four times the weight you can normally lift.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "book",
+   "name": "Book",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "bottle-glass",
+   "name": "Bottle, Glass",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1½ pints of liquid.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "bucket",
+   "name": "Bucket",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 3 gallons of liquid or ½ cubic foot of solids.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "cp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "caltrops-bag-of-20",
+   "name": "Caltrops (bag of 20)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "As an action, cover a 5-foot square. A creature entering must succeed on a DC 15 Dexterity save or take 1 piercing damage and lose 10 feet of speed until it regains a hit point.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "candle",
+   "name": "Candle",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Sheds bright light in a 5-foot radius and dim light for another 5 feet for 1 hour.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "cp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "case-crossbow-bolt",
+   "name": "Case, Crossbow Bolt",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds up to twenty crossbow bolts.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "case-map-or-scroll",
+   "name": "Case, Map or Scroll",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds up to ten sheets of paper or five sheets of parchment.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "chain-10-feet",
+   "name": "Chain (10 feet)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Has 10 hit points. It can be burst with a DC 20 Strength check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "chalk-1-piece",
+   "name": "Chalk (1 piece)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "cp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "chest",
+   "name": "Chest",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 12 cubic feet or 300 pounds of gear.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 25
+  },
+  {
+   "id": "climber-s-kit",
+   "name": "Climber's Kit",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Pitons, boot tips, gloves and a harness. As an action you can anchor yourself; you can't fall more than 25 feet from the anchor.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 12
+  },
+  {
+   "id": "clothes-common",
+   "name": "Clothes, Common",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "clothes-costume",
+   "name": "Clothes, Costume",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "clothes-fine",
+   "name": "Clothes, Fine",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 6
+  },
+  {
+   "id": "clothes-traveler-s",
+   "name": "Clothes, Traveler's",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "component-pouch",
+   "name": "Component Pouch",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "A watertight belt pouch holding the material components needed for spells, except those with a listed cost.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "crowbar",
+   "name": "Crowbar",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Grants advantage on Strength checks where its leverage can be applied.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "arcane-focus-crystal",
+   "name": "Arcane Focus, Crystal",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "An arcane focus a sorcerer, warlock or wizard can use in place of material components.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "arcane-focus-orb",
+   "name": "Arcane Focus, Orb",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 20,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "arcane-focus-rod",
+   "name": "Arcane Focus, Rod",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "arcane-focus-staff",
+   "name": "Arcane Focus, Staff",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Can also be used as a quarterstaff.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "arcane-focus-wand",
+   "name": "Arcane Focus, Wand",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "druidic-focus-sprig-of-mistletoe",
+   "name": "Druidic Focus, Sprig of Mistletoe",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "A druid can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "druidic-focus-totem",
+   "name": "Druidic Focus, Totem",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "druidic-focus-wooden-staff",
+   "name": "Druidic Focus, Wooden Staff",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "druidic-focus-yew-wand",
+   "name": "Druidic Focus, Yew Wand",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "fishing-tackle",
+   "name": "Fishing Tackle",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "flask-or-tankard",
+   "name": "Flask or Tankard",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "cp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "grappling-hook",
+   "name": "Grappling Hook",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "hammer",
+   "name": "Hammer",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "hammer-sledge",
+   "name": "Hammer, Sledge",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "healer-s-kit",
+   "name": "Healer's Kit",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Has ten uses. As an action, expend one use to stabilise a creature that has 0 hit points, without a Wisdom (Medicine) check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "holy-symbol-amulet",
+   "name": "Holy Symbol, Amulet",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "A cleric or paladin can use a holy symbol as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "holy-symbol-emblem",
+   "name": "Holy Symbol, Emblem",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "holy-symbol-reliquary",
+   "name": "Holy Symbol, Reliquary",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "hourglass",
+   "name": "Hourglass",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "hunting-trap",
+   "name": "Hunting Trap",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "A creature that steps on it must succeed on a DC 13 Dexterity save or take 1d4 piercing damage and stop moving. Escaping takes a DC 13 Strength check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 25
+  },
+  {
+   "id": "ink-1-ounce-bottle",
+   "name": "Ink (1 ounce bottle)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "ink-pen",
+   "name": "Ink Pen",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "cp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "jug-or-pitcher",
+   "name": "Jug or Pitcher",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1 gallon of liquid.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "cp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "ladder-10-foot",
+   "name": "Ladder (10-foot)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 25
+  },
+  {
+   "id": "lamp",
+   "name": "Lamp",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Bright light in a 15-foot radius and dim light for another 30 feet. Burns for 6 hours on a flask of oil.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "lantern-bullseye",
+   "name": "Lantern, Bullseye",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Bright light in a 60-foot cone and dim light for another 60 feet. Burns for 6 hours on a flask of oil.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "lantern-hooded",
+   "name": "Lantern, Hooded",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Bright light in a 30-foot radius and dim light for another 30 feet. Lower the hood to reduce it to dim light in a 5-foot radius.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "lock",
+   "name": "Lock",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Comes with a key. Without the key, a creature proficient with thieves' tools can pick it with a DC 15 Dexterity check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "magnifying-glass",
+   "name": "Magnifying Glass",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Grants advantage on checks to appraise or inspect small or detailed items. Can start a fire in bright sunlight.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 100,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "manacles",
+   "name": "Manacles",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Bind a Small or Medium creature. Escaping takes a DC 20 Dexterity check; breaking them takes a DC 20 Strength check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 6
+  },
+  {
+   "id": "mess-kit",
+   "name": "Mess Kit",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "sp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "mirror-steel",
+   "name": "Mirror, Steel",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 0.5
+  },
+  {
+   "id": "pick-miner-s",
+   "name": "Pick, Miner's",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "piton",
+   "name": "Piton",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "cp"
+   },
+   "weight": 0.25
+  },
+  {
+   "id": "pole-10-foot",
+   "name": "Pole (10-foot)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "cp"
+   },
+   "weight": 7
+  },
+  {
+   "id": "pot-iron",
+   "name": "Pot, Iron",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1 gallon of liquid.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "pouch",
+   "name": "Pouch",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1/5 cubic foot or 6 pounds of gear.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "quiver",
+   "name": "Quiver",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds up to 20 arrows.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "ram-portable",
+   "name": "Ram, Portable",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Grants a +4 bonus to Strength checks to break down doors.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 4,
+    "coin": "gp"
+   },
+   "weight": 35
+  },
+  {
+   "id": "rations-1-day",
+   "name": "Rations (1 day)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "robes",
+   "name": "Robes",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 4
+  },
+  {
+   "id": "rope-hempen-50-feet",
+   "name": "Rope, Hempen (50 feet)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Has 2 hit points and can be burst with a DC 17 Strength check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "rope-silk-50-feet",
+   "name": "Rope, Silk (50 feet)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Has 2 hit points and can be burst with a DC 17 Strength check.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "sack",
+   "name": "Sack",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 1 cubic foot or 30 pounds of gear.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "cp"
+   },
+   "weight": 0.5
+  },
+  {
+   "id": "scale-merchant-s",
+   "name": "Scale, Merchant's",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "sealing-wax",
+   "name": "Sealing Wax",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "shovel",
+   "name": "Shovel",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "signal-whistle",
+   "name": "Signal Whistle",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "cp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "signet-ring",
+   "name": "Signet Ring",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "soap",
+   "name": "Soap",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "cp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "spellbook",
+   "name": "Spellbook",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "A leather-bound tome with 100 blank vellum pages for recording wizard spells.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "spikes-iron-10",
+   "name": "Spikes, Iron (10)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "spyglass",
+   "name": "Spyglass",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Objects viewed through it are magnified to twice their size.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1000,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "tent-two-person",
+   "name": "Tent, Two-Person",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 20
+  },
+  {
+   "id": "tinderbox",
+   "name": "Tinderbox",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Lights a torch or similar fuel as an action; other fires take 1 minute.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "torch",
+   "name": "Torch",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Burns for 1 hour, bright light in a 20-foot radius and dim light for another 20 feet. As an improvised weapon it deals 1 fire damage.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "cp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "vial",
+   "name": "Vial",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 4 ounces of liquid.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "waterskin",
+   "name": "Waterskin",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "Holds 4 pints of liquid.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "sp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "whetstone",
+   "name": "Whetstone",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "cp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "paper-one-sheet",
+   "name": "Paper (one sheet)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "sp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "parchment-one-sheet",
+   "name": "Parchment (one sheet)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "perfume-vial",
+   "name": "Perfume (vial)",
+   "category": "gear",
+   "group": "Adventuring Gear",
+   "description": "",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "burglar-s-pack",
+   "name": "Burglar's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, bag of 1,000 ball bearings, 10 feet of string, bell, 5 candles, crowbar, hammer, 10 pitons, hooded lantern, 2 flasks of oil, 5 days of rations, tinderbox, waterskin and 50 feet of hempen rope.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 16,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "diplomat-s-pack",
+   "name": "Diplomat's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Chest, 2 cases for maps and scrolls, fine clothes, bottle of ink, ink pen, lamp, 2 flasks of oil, 5 sheets of paper, vial of perfume, sealing wax and soap.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 39,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "dungeoneer-s-pack",
+   "name": "Dungeoneer's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, crowbar, hammer, 10 pitons, 10 torches, tinderbox, 10 days of rations, waterskin and 50 feet of hempen rope.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 12,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "entertainer-s-pack",
+   "name": "Entertainer's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, bedroll, 2 costumes, 5 candles, 5 days of rations, waterskin and a disguise kit.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 40,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "explorer-s-pack",
+   "name": "Explorer's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, bedroll, mess kit, tinderbox, 10 torches, 10 days of rations, waterskin and 50 feet of hempen rope.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "priest-s-pack",
+   "name": "Priest's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, blanket, 10 candles, tinderbox, alms box, 2 blocks of incense, censer, vestments, 2 days of rations and waterskin.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 19,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "scholar-s-pack",
+   "name": "Scholar's Pack",
+   "category": "gear",
+   "group": "Equipment Packs",
+   "description": "Backpack, book of lore, bottle of ink, ink pen, 10 sheets of parchment, little bag of sand and small knife.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 40,
+    "coin": "gp"
+   }
+  },
+  {
+   "id": "alchemist-s-supplies",
+   "name": "Alchemist's Supplies",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 8
+  },
+  {
+   "id": "brewer-s-supplies",
+   "name": "Brewer's Supplies",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 20,
+    "coin": "gp"
+   },
+   "weight": 9
+  },
+  {
+   "id": "calligrapher-s-supplies",
+   "name": "Calligrapher's Supplies",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "carpenter-s-tools",
+   "name": "Carpenter's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 8,
+    "coin": "gp"
+   },
+   "weight": 6
+  },
+  {
+   "id": "cartographer-s-tools",
+   "name": "Cartographer's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 6
+  },
+  {
+   "id": "cobbler-s-tools",
+   "name": "Cobbler's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "cook-s-utensils",
+   "name": "Cook's Utensils",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 8
+  },
+  {
+   "id": "glassblower-s-tools",
+   "name": "Glassblower's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "jeweler-s-tools",
+   "name": "Jeweler's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "leatherworker-s-tools",
+   "name": "Leatherworker's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "mason-s-tools",
+   "name": "Mason's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 8
+  },
+  {
+   "id": "painter-s-supplies",
+   "name": "Painter's Supplies",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "potter-s-tools",
+   "name": "Potter's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 10,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "smith-s-tools",
+   "name": "Smith's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 20,
+    "coin": "gp"
+   },
+   "weight": 8
+  },
+  {
+   "id": "tinker-s-tools",
+   "name": "Tinker's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "weaver-s-tools",
+   "name": "Weaver's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "woodcarver-s-tools",
+   "name": "Woodcarver's Tools",
+   "category": "tools",
+   "group": "Artisan's Tools",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks made using these tools to practise the craft.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "dice-set",
+   "name": "Dice Set",
+   "category": "tools",
+   "group": "Gaming Sets",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this game.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 1,
+    "coin": "sp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "playing-card-set",
+   "name": "Playing Card Set",
+   "category": "tools",
+   "group": "Gaming Sets",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this game.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "sp"
+   },
+   "weight": 0
+  },
+  {
+   "id": "bagpipes",
+   "name": "Bagpipes",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 6
+  },
+  {
+   "id": "drum",
+   "name": "Drum",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 6,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "dulcimer",
+   "name": "Dulcimer",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 10
+  },
+  {
+   "id": "flute",
+   "name": "Flute",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "lute",
+   "name": "Lute",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 35,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "lyre",
+   "name": "Lyre",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "horn",
+   "name": "Horn",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 3,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "pan-flute",
+   "name": "Pan Flute",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 12,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "shawm",
+   "name": "Shawm",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 2,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "viol",
+   "name": "Viol",
+   "category": "tools",
+   "group": "Musical Instruments",
+   "description": "Proficiency lets you add your proficiency bonus to ability checks you make to play this instrument. A bard can use it as a spellcasting focus.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 30,
+    "coin": "gp"
+   },
+   "weight": 1
+  },
+  {
+   "id": "disguise-kit",
+   "name": "Disguise Kit",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "Cosmetics, hair dye and small props that let you create disguises that change your physical appearance.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "forgery-kit",
+   "name": "Forgery Kit",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "Papers, inks, seals and tools to create convincing forgeries of physical documents.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 15,
+    "coin": "gp"
+   },
+   "weight": 5
+  },
+  {
+   "id": "herbalism-kit",
+   "name": "Herbalism Kit",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "Clippers, a mortar and pestle, pouches and vials. Proficiency is needed to create antitoxin and potions of healing.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 5,
+    "coin": "gp"
+   },
+   "weight": 3
+  },
+  {
+   "id": "navigator-s-tools",
+   "name": "Navigator's Tools",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "Instruments for navigation at sea. Proficiency helps you chart a course and find your position.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "poisoner-s-kit",
+   "name": "Poisoner's Kit",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "Vials, chemicals and equipment needed to create poisons.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 50,
+    "coin": "gp"
+   },
+   "weight": 2
+  },
+  {
+   "id": "thieves-tools",
+   "name": "Thieves' Tools",
+   "category": "tools",
+   "group": "Other Tools",
+   "description": "A file, lock picks, a small mirror, narrow scissors and pliers. Proficiency lets you add your proficiency bonus to checks to disarm traps or open locks.",
+   "requiresAttunement": false,
+   "cost": {
+    "amount": 25,
+    "coin": "gp"
+   },
+   "weight": 1
+  }
+ ]
+}

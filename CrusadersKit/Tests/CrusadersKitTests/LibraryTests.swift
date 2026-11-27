@@ -6,7 +6,7 @@ final class LibraryTests: XCTestCase {
 
     func testPlaceholderHasCoreCategories() {
         let names = categories.map(\.name)
-        for expected in ["Creatures", "Weapons", "Armour"] {
+        for expected in ["Creatures", "Spells", "Magic Items"] {
             XCTAssertTrue(names.contains(expected), "missing \(expected)")
         }
     }
@@ -27,7 +27,13 @@ final class LibraryTests: XCTestCase {
     }
 
     func testEmptySearchReturnsEverything() throws {
-        let weapons = try XCTUnwrap(categories.first { $0.id == "weapons" })
-        XCTAssertEqual(weapons.items(matching: "  "), weapons.items)
+        let spells = try XCTUnwrap(categories.first { $0.id == "spells" })
+        XCTAssertEqual(spells.items(matching: "  "), spells.items)
+    }
+
+    func testEquipmentMovedOutOfPlaceholderIntoItems() {
+        let ids = Set(categories.map(\.id))
+        XCTAssertFalse(ids.contains("weapons"))
+        XCTAssertFalse(ids.contains("armour"))
     }
 }

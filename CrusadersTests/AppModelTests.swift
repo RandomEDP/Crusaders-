@@ -1,4 +1,5 @@
 import XCTest
+import CloudKit
 import CrusadersKit
 @testable import Crusaders
 
@@ -32,6 +33,44 @@ final class AppModelTests: XCTestCase {
         let joined = try model.joinCampaign(code: "tmb234")
         XCTAssertEqual(joined.name, "Tomb")
         XCTAssertEqual(joined.role, .player)
+    }
+
+    func testItemLibraryShipsWithSRDItemsAndIsViewOnlyByDefault() async {
+        let model = AppModel()
+        XCTAssertGreaterThan(model.itemLibrary.catalog.baseItems.count, 250)
+        await model.itemLibrary.refresh()
+        XCTAssertFalse(model.itemLibrary.isCreator)
+    }
+
+    func testCreatorModeLaunchArgumentUnlocksEditingInDebug() async throws {
+        let library = ItemLibrary.makeDefault(arguments: ["-creatorMode"])
+        await library.refresh()
+        XCTAssertTrue(library.isCreator)
+        var club = try XCTUnwrap(library.catalog.item(id: "club"))
+        club.name = "Big Club"
+        try await library.save(club)
+        XCTAssertEqual(library.catalog.item(id: "club")?.name, "Big Club")
+    }
+
+    func testWithoutICloudEditingIsOffAndExplained() async {
+        let library = ItemLibrary.makeDefault(arguments: [], cloudKitEnabled: false)
+        await library.refresh()
+        XCTAssertFalse(library.isCreator)
+        XCTAssertNotNil(library.creatorStatus.problem)
+        XCTAssertGreaterThan(library.catalog.items.count, 250)
+    }
+
+    func testThisBuildHasICloudSwitchedOff() {
+        XCTAssertFalse(ItemLibrary.cloudKitEnabledInBuild)
+    }
+
+    func testCloudKitRecordEncodingRoundTrips() throws {
+        let item = try XCTUnwrap(ItemLibrary.makeDefault(arguments: []).catalog.item(id: "longsword"))
+        let record = CKRecord(recordType: CloudKitItemOverrideStore.recordType,
+                              recordID: CloudKitItemOverrideStore.recordID(for: item.id))
+        record["payload"] = try CloudKitItemOverrideStore.encode(item) as CKRecordValue
+        XCTAssertEqual(record.recordID.recordName, "item-longsword")
+        XCTAssertEqual(CloudKitItemOverrideStore.decode(record), item)
     }
 
     func testCreateCharacterFromDraftUsesSRDRules() throws {
