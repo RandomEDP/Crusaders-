@@ -51,6 +51,16 @@ With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in m
 
 Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Characters and SRD content
+
+The character builder uses every race, class (with its SRD subclass) and spell from the **System Reference Document 5.1**: 9 races, 12 classes and 319 spells. Characters level up from XP using the SRD table, and the level-up screen lists each new feature, spell slot, spell level and subclass.
+
+The data is generated Swift under `CrusadersKit/Sources/CrusadersKit/Characters/SRD/`, built from the [5e-bits/5e-database](https://github.com/5e-bits/5e-database) JSON (`src/2014/en`) with `python3 scripts/srd/convert.py <5e-database>/src/2014/en CrusadersKit/Sources/CrusadersKit/Characters/SRD`. Don't edit those files by hand.
+
+Content outside the SRD (for example Xanathar's or Tasha's subclasses, or races like Tabaxi) is copyrighted by Wizards of the Coast and isn't included.
+
+> This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
 ## Work cycle
 
 1. Create a branch for each piece of work.

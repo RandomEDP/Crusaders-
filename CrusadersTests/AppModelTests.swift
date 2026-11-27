@@ -72,4 +72,51 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(record.recordID.recordName, "item-longsword")
         XCTAssertEqual(CloudKitItemOverrideStore.decode(record), item)
     }
+
+    func testCreateCharacterFromDraftUsesSRDRules() throws {
+        let model = AppModel()
+        var draft = CharacterDraft.starter(catalog: model.rules)
+        draft.name = "Bram"
+        let hero = try model.createCharacter(from: draft)
+        XCTAssertEqual(hero.summary, "Level 1 Human Fighter")
+        XCTAssertEqual(model.sheet(for: hero.id)?.maxHitPoints, 12)
+        XCTAssertNil(model.sheet(for: UUID()))
+    }
+
+    func testCreateCharacterRejectsBlankName() {
+        let model = AppModel()
+        XCTAssertThrowsError(try model.createCharacter(from: CharacterDraft.starter())) {
+            XCTAssertEqual($0 as? CharacterError, .emptyName)
+        }
+        XCTAssertTrue(model.roster.characters.isEmpty)
+    }
+
+    func testAddExperienceReturnsLevelUpSummaryOnlyWhenLevelling() throws {
+        let model = AppModel()
+        var draft = CharacterDraft.starter()
+        draft.name = "Bram"
+        let hero = try model.createCharacter(from: draft)
+        XCTAssertNil(try model.addExperience(100, to: hero.id))
+        let summary = try XCTUnwrap(try model.addExperience(800, to: hero.id))
+        XCTAssertEqual(summary.fromLevel, 1)
+        XCTAssertEqual(summary.toLevel, 3)
+        XCTAssertEqual(summary.levels.map(\.level), [2, 3])
+        XCTAssertEqual(model.character(id: hero.id)?.experiencePoints, 900)
+        XCTAssertThrowsError(try model.addExperience(0, to: hero.id))
+    }
+
+    func testToggleSpellAndSpendImprovementPoint() throws {
+        let model = AppModel()
+        var draft = CharacterDraft.starter()
+        draft.name = "Bram"
+        draft.level = 4
+        let hero = try model.createCharacter(from: draft)
+        model.toggleSpell("fire-bolt", for: hero.id)
+        XCTAssertEqual(model.character(id: hero.id)?.spellIDs, ["fire-bolt"])
+        model.toggleSpell("fire-bolt", for: hero.id)
+        XCTAssertEqual(model.character(id: hero.id)?.spellIDs, [])
+
+        try model.spendImprovementPoint(on: .con, for: hero.id)
+        XCTAssertEqual(model.sheet(for: hero.id)?.unspentImprovementPoints, 1)
+    }
 }
