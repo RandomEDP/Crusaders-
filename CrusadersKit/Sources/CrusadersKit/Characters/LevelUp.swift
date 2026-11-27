@@ -43,7 +43,8 @@ public struct LevelUnlocks: Hashable, Sendable {
 }
 
 /// Everything unlocked by going from one level to a higher one.
-public struct LevelUpSummary: Hashable, Sendable {
+public struct LevelUpSummary: Hashable, Identifiable, Sendable {
+    public var id: String { "\(characterName)-\(fromLevel)-\(toLevel)" }
     public let characterName: String
     public let fromLevel: Int
     public let toLevel: Int
