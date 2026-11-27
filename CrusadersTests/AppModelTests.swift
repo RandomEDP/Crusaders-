@@ -52,6 +52,18 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(library.catalog.item(id: "club")?.name, "Big Club")
     }
 
+    func testWithoutICloudEditingIsOffAndExplained() async {
+        let library = ItemLibrary.makeDefault(arguments: [], cloudKitEnabled: false)
+        await library.refresh()
+        XCTAssertFalse(library.isCreator)
+        XCTAssertNotNil(library.creatorStatus.problem)
+        XCTAssertGreaterThan(library.catalog.items.count, 250)
+    }
+
+    func testThisBuildHasICloudSwitchedOff() {
+        XCTAssertFalse(ItemLibrary.cloudKitEnabledInBuild)
+    }
+
     func testCloudKitRecordEncodingRoundTrips() throws {
         let item = try XCTUnwrap(ItemLibrary.makeDefault(arguments: []).catalog.item(id: "longsword"))
         let record = CKRecord(recordType: CloudKitItemOverrideStore.recordType,

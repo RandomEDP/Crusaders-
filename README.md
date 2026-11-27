@@ -35,11 +35,13 @@ Library > Items holds every weapon, armour, ammunition, potion, adventuring gear
 
 The app's creator can change any characteristic of an item (name, cost, weight, rarity, damage, properties, range, AC, Strength, stealth, description) from the item's **Edit** button. Edits are saved to the CloudKit public database, so every player gets them. **Reset to SRD values** removes an edit.
 
-Release builds (TestFlight) always use iCloud. Debug builds keep edits in memory so CI runs without signing. In Debug, add the launch argument `-creatorMode` to try creator tools, or `-useCloudKit` to talk to iCloud from a signed build.
+**iCloud is currently switched off** (`CLOUDKIT_ENABLED: NO` in `project.yml`) until the container below exists, so builds sign without it. While it's off, items are view-only in TestFlight and Library > Creator access says so. To switch it on after the setup below, set `CLOUDKIT_ENABLED: YES` and add `CODE_SIGN_ENTITLEMENTS: Crusaders/Crusaders.entitlements` in `project.yml`.
+
+With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in memory so CI runs without signing. In Debug, add the launch argument `-creatorMode` to try creator tools, or `-useCloudKit` to talk to iCloud from a signed build.
 
 ### iCloud setup (once, by the Apple account owner)
 
-1. In the Apple Developer portal, create the iCloud container `iCloud.com.randomedp.Crusaders` and enable iCloud (CloudKit) on the App ID `com.randomedp.Crusaders` with that container. The app's entitlements (`Crusaders/Crusaders.entitlements`) already ask for it.
+1. In the Apple Developer portal, create the iCloud container `iCloud.com.randomedp.Crusaders` and enable iCloud (CloudKit) on the App ID `com.randomedp.Crusaders` with that container. The entitlements file (`Crusaders/Crusaders.entitlements`) is ready for when iCloud is switched on.
 2. In the CloudKit Dashboard, in the public database, create two record types:
    - `ItemOverride` with fields `itemID` (String) and `payload` (String). Add a queryable index on `recordName`.
    - `Creator` with field `userID` (String, queryable).

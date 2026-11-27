@@ -33,6 +33,7 @@ targets:
         UILaunchScreen: {}
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         ITSAppUsesNonExemptEncryption: false
+        CrusadersCloudKitEnabled: $(CLOUDKIT_ENABLED)
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.randomedp.Crusaders
@@ -40,7 +41,10 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         CODE_SIGN_STYLE: Automatic
-        CODE_SIGN_ENTITLEMENTS: Crusaders/Crusaders.entitlements
+        # iCloud is off until the container iCloud.com.randomedp.Crusaders exists.
+        # To turn it on: set CLOUDKIT_ENABLED to YES and add
+        # CODE_SIGN_ENTITLEMENTS: Crusaders/Crusaders.entitlements
+        CLOUDKIT_ENABLED: NO
 
   CrusadersTests:
     type: bundle.unit-test
