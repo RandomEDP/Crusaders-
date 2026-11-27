@@ -57,7 +57,7 @@ final class CampaignManagerTests: XCTestCase {
 
         XCTAssertEqual(joined.name, "Night Below")
         XCTAssertEqual(joined.dungeonMaster.name, "Dana")
-        XCTAssertEqual(joined.players, [CampaignMember(id: "p1", name: "Aria")])
+        XCTAssertEqual(joined.players, [CampaignMember(id: "p1", name: "Aria", character: CampaignCharacter(hero))])
         XCTAssertEqual(player.role(in: joined), .player)
 
         // The DM sees the new player after refreshing.
