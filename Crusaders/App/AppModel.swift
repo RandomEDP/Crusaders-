@@ -3,29 +3,27 @@ import Observation
 import CrusadersKit
 
 /// App-wide state shared by every screen.
-/// Characters and campaigns are in memory for now. Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
+/// Characters are in memory for now. Campaigns are saved on the phone and shared through CloudKit once iCloud is on
+/// (see `CampaignManager.makeDefault`). Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
 @MainActor
 @Observable
 final class AppModel {
     var roster: CharacterRoster
-    var campaignBook: CampaignBook
+    let campaigns: CampaignManager
     let libraryCategories: [LibraryCategory]
     let itemLibrary: ItemLibrary
     let rules: RulesCatalog
-    private let campaignDirectory: CampaignDirectory
 
     init(
         roster: CharacterRoster = CharacterRoster(),
-        campaignBook: CampaignBook = CampaignBook(),
+        campaigns: CampaignManager? = nil,
         library: LibraryCatalog = PlaceholderLibraryCatalog(),
-        campaignDirectory: CampaignDirectory = InMemoryCampaignDirectory.sample,
         rules: RulesCatalog = .srd,
         itemLibrary: ItemLibrary? = nil
     ) {
         self.roster = roster
-        self.campaignBook = campaignBook
+        self.campaigns = campaigns ?? CampaignManager.makeDefault()
         self.libraryCategories = library.categories()
-        self.campaignDirectory = campaignDirectory
         self.itemLibrary = itemLibrary ?? ItemLibrary.makeDefault()
         self.rules = rules
     }
@@ -70,13 +68,15 @@ final class AppModel {
         roster.remove(atOffsets: offsets)
     }
 
+    /// Creates a campaign with a new 6-digit join code. The user is its Dungeon Master.
     @discardableResult
-    func createCampaign(name: String) throws -> Campaign {
-        try campaignBook.create(name: name)
+    func createCampaign(name: String, yourName: String) async throws -> Campaign {
+        try await campaigns.create(name: name, yourName: yourName)
     }
 
+    /// Joins a campaign by its 6-digit code. The user is listed as a player.
     @discardableResult
-    func joinCampaign(code: String) throws -> Campaign {
-        try campaignBook.join(code: code, directory: campaignDirectory)
+    func joinCampaign(code: String, yourName: String) async throws -> Campaign {
+        try await campaigns.join(code: code, yourName: yourName)
     }
 }

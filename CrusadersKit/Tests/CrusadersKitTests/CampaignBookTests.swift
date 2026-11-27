@@ -1,99 +1,125 @@
 import XCTest
 @testable import CrusadersKit
 
-final class CampaignBookTests: XCTestCase {
-    private let directory = InMemoryCampaignDirectory(campaigns: [
-        Campaign(name: "Lost Mine", joinCode: "ABC234", role: .dungeonMaster)
-    ])
+private let dm = CampaignMember(id: "dm-1", name: "Dana")
+private let aria = CampaignMember(id: "player-1", name: "Aria")
 
-    func testCreateMakesUserTheDungeonMaster() throws {
+final class CampaignModelTests: XCTestCase {
+    func testRoles() {
+        var campaign = Campaign(name: "Lost Mine", joinCode: "123456", dungeonMaster: dm)
+        campaign.addPlayer(aria)
+        XCTAssertEqual(campaign.role(of: "dm-1"), .dungeonMaster)
+        XCTAssertEqual(campaign.role(of: "player-1"), .player)
+        XCTAssertNil(campaign.role(of: "stranger"))
+        XCTAssertEqual(campaign.id, "123456")
+    }
+
+    func testAddPlayerSkipsDMAndDuplicatesButUpdatesName() {
+        var campaign = Campaign(name: "Lost Mine", joinCode: "123456", dungeonMaster: dm)
+        campaign.addPlayer(dm)
+        XCTAssertTrue(campaign.players.isEmpty)
+        campaign.addPlayer(aria)
+        campaign.addPlayer(CampaignMember(id: "player-1", name: "Aria the Bold"))
+        XCTAssertEqual(campaign.players, [CampaignMember(id: "player-1", name: "Aria the Bold")])
+    }
+
+    func testRoleLabels() {
+        XCTAssertEqual(Campaign.Role.dungeonMaster.label, "Dungeon Master")
+        XCTAssertEqual(Campaign.Role.player.label, "Player")
+    }
+
+    func testBookUpsertAndLeave() {
         var book = CampaignBook()
-        let campaign = try book.create(name: "  Curse of the Moon ", joinCode: "MNP223")
-        XCTAssertEqual(campaign.name, "Curse of the Moon")
-        XCTAssertEqual(campaign.role, .dungeonMaster)
-        XCTAssertEqual(campaign.joinCode, "MNP223")
+        var campaign = Campaign(name: "Lost Mine", joinCode: "123456", dungeonMaster: dm)
+        book.upsert(campaign)
+        campaign.addPlayer(aria)
+        book.upsert(campaign)
         XCTAssertEqual(book.campaigns, [campaign])
-    }
-
-    func testCreateGeneratesValidJoinCodeByDefault() throws {
-        var book = CampaignBook()
-        let campaign = try book.create(name: "Anything")
-        XCTAssertEqual(JoinCode.normalize(campaign.joinCode), campaign.joinCode)
-    }
-
-    func testCreateRejectsBlankName() {
-        var book = CampaignBook()
-        XCTAssertThrowsError(try book.create(name: " ")) {
-            XCTAssertEqual($0 as? CampaignError, .emptyName)
-        }
-    }
-
-    func testJoinWithValidCodeAddsCampaignAsPlayer() throws {
-        var book = CampaignBook()
-        let joined = try book.join(code: "abc-234", directory: directory)
-        XCTAssertEqual(joined.name, "Lost Mine")
-        XCTAssertEqual(joined.role, .player)
-        XCTAssertEqual(book.campaigns.count, 1)
-    }
-
-    func testJoinRejectsMalformedCode() {
-        var book = CampaignBook()
-        for code in ["", "ABC", "ABC2345", "ABC23O"] {
-            XCTAssertThrowsError(try book.join(code: code, directory: directory)) {
-                XCTAssertEqual($0 as? CampaignError, .invalidJoinCode, "code: \(code)")
-            }
-        }
-    }
-
-    func testJoinUnknownCodeFails() {
-        var book = CampaignBook()
-        XCTAssertThrowsError(try book.join(code: "ZZZ999", directory: directory)) {
-            XCTAssertEqual($0 as? CampaignError, .campaignNotFound)
-        }
-    }
-
-    func testJoinTwiceFails() throws {
-        var book = CampaignBook()
-        try book.join(code: "ABC234", directory: directory)
-        XCTAssertThrowsError(try book.join(code: "ABC234", directory: directory)) {
-            XCTAssertEqual($0 as? CampaignError, .alreadyJoined)
-        }
-    }
-
-    func testLeave() throws {
-        var book = CampaignBook()
-        let campaign = try book.create(name: "Short lived")
-        book.leave(id: campaign.id)
+        XCTAssertTrue(book.contains(code: "123456"))
+        book.leave(code: "123456")
         XCTAssertTrue(book.campaigns.isEmpty)
     }
 
-    func testSampleDirectoryCodesAreValid() {
-        for code in ["CRUSAD", "EMBER7"] {
-            XCTAssertEqual(JoinCode.normalize(code), code)
-            XCTAssertNotNil(InMemoryCampaignDirectory.sample.campaign(forJoinCode: code))
+    func testCleanName() throws {
+        XCTAssertEqual(try CampaignBook.cleanName("  Night Below ", error: .emptyName), "Night Below")
+        XCTAssertThrowsError(try CampaignBook.cleanName(" \n", error: .emptyPlayerName)) {
+            XCTAssertEqual($0 as? CampaignError, .emptyPlayerName)
         }
     }
 }
 
 final class JoinCodeTests: XCTestCase {
-    func testGeneratedCodesUseOnlyTheSafeAlphabet() {
-        for _ in 0..<200 {
+    func testGeneratedCodesAreSixDigits() {
+        for _ in 0..<500 {
             let code = JoinCode.generate()
-            XCTAssertEqual(code.count, JoinCode.length)
-            XCTAssertTrue(code.allSatisfy { JoinCode.alphabet.contains($0) }, code)
+            XCTAssertEqual(code.count, 6)
+            XCTAssertTrue(code.allSatisfy(\.isASCII) && code.allSatisfy(\.isNumber), code)
+            XCTAssertEqual(JoinCode.normalize(code), code)
         }
     }
 
-    func testAlphabetExcludesLookAlikes() {
-        for character in "01OIL" {
-            XCTAssertFalse(JoinCode.alphabet.contains(character), "\(character) should be excluded")
-        }
+    func testGeneratedCodesVary() {
+        let codes = Set((0..<200).map { _ in JoinCode.generate() })
+        XCTAssertGreaterThan(codes.count, 190)
+    }
+
+    func testSeededGeneratorIsRepeatable() {
+        var first = SeededGenerator(seed: 7)
+        var second = SeededGenerator(seed: 7)
+        XCTAssertEqual(JoinCode.generate(using: &first), JoinCode.generate(using: &second))
     }
 
     func testNormalize() {
-        XCTAssertEqual(JoinCode.normalize(" ab c-234 "), "ABC234")
-        XCTAssertNil(JoinCode.normalize("ABC23"))
-        XCTAssertNil(JoinCode.normalize("ABC23!"))
+        XCTAssertEqual(JoinCode.normalize(" 042-917 "), "042917")
+        XCTAssertEqual(JoinCode.normalize("000000"), "000000")
+        for bad in ["", "12345", "1234567", "12345A", "ABCDEF", "١٢٣٤٥٦"] {
+            XCTAssertNil(JoinCode.normalize(bad), bad)
+        }
+    }
+
+    func testDisplay() {
+        XCTAssertEqual(JoinCode.display("042917"), "042 917")
+        XCTAssertEqual(JoinCode.display("12"), "12")
+    }
+}
+
+final class InMemoryCampaignDirectoryTests: XCTestCase {
+    func testPublishLookupAndAddPlayer() async throws {
+        let directory = InMemoryCampaignDirectory()
+        try await directory.publish(Campaign(name: "Lost Mine", joinCode: "123456", dungeonMaster: dm))
+        let updated = try await directory.addPlayer(aria, toCampaignWithCode: "123456")
+        XCTAssertEqual(updated.players, [aria])
+        let fetched = try await directory.campaign(forJoinCode: "123456")
+        XCTAssertEqual(fetched, updated)
+        let missing = try await directory.campaign(forJoinCode: "999999")
+        XCTAssertNil(missing)
+    }
+
+    func testPublishingATakenCodeFails() async throws {
+        let directory = InMemoryCampaignDirectory()
+        try await directory.publish(Campaign(name: "A", joinCode: "123456", dungeonMaster: dm))
+        do {
+            try await directory.publish(Campaign(name: "B", joinCode: "123456", dungeonMaster: aria))
+            XCTFail("expected codeTaken")
+        } catch {
+            XCTAssertEqual(error as? CampaignError, .codeTaken)
+        }
+    }
+
+    func testAddPlayerToUnknownCodeFails() async {
+        let directory = InMemoryCampaignDirectory()
+        do {
+            _ = try await directory.addPlayer(aria, toCampaignWithCode: "123456")
+            XCTFail("expected campaignNotFound")
+        } catch {
+            XCTAssertEqual(error as? CampaignError, .campaignNotFound)
+        }
+    }
+
+    func testSampleCampaignUsesAValidCode() async throws {
+        XCTAssertEqual(JoinCode.normalize(InMemoryCampaignDirectory.sampleCode), InMemoryCampaignDirectory.sampleCode)
+        let sample = try await InMemoryCampaignDirectory.withSamples().campaign(forJoinCode: "123456")
+        XCTAssertEqual(sample?.name, "The Sunken Citadel")
     }
 }
 
@@ -101,11 +127,29 @@ final class ErrorMessageTests: XCTestCase {
     func testEveryErrorHasAFriendlyMessage() {
         let errors: [LocalizedError] = [
             CharacterError.emptyName, CharacterError.levelOutOfRange,
-            CampaignError.emptyName, CampaignError.invalidJoinCode,
-            CampaignError.campaignNotFound, CampaignError.alreadyJoined
+            CampaignError.emptyName, CampaignError.emptyPlayerName, CampaignError.invalidJoinCode,
+            CampaignError.campaignNotFound, CampaignError.alreadyJoined,
+            CampaignError.codeTaken, CampaignError.directoryUnavailable
         ]
         for error in errors {
             XCTAssertFalse(error.errorDescription?.isEmpty ?? true, "\(error)")
         }
+    }
+}
+
+/// Small deterministic generator for repeatable tests (SplitMix64).
+struct SeededGenerator: RandomNumberGenerator {
+    private var state: UInt64
+
+    init(seed: UInt64) {
+        state = seed
+    }
+
+    mutating func next() -> UInt64 {
+        state &+= 0x9E37_79B9_7F4A_7C15
+        var z = state
+        z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+        z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+        return z ^ (z >> 31)
     }
 }

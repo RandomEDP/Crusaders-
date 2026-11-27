@@ -25,9 +25,12 @@ extension CampaignError: LocalizedError {
     public var errorDescription: String? {
         switch self {
         case .emptyName: return "Give your campaign a name."
-        case .invalidJoinCode: return "Join codes are 6 letters or numbers."
+        case .emptyPlayerName: return "Enter your name so the party knows who you are."
+        case .invalidJoinCode: return "Join codes are 6 digits."
         case .campaignNotFound: return "No campaign uses that code."
         case .alreadyJoined: return "You're already in that campaign."
+        case .codeTaken: return "Couldn't find a free join code. Please try again."
+        case .directoryUnavailable: return "Couldn't reach iCloud. Check you're online and signed in to iCloud, then try again."
         }
     }
 }

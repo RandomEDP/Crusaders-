@@ -5,38 +5,76 @@ import CrusadersKit
 
 @MainActor
 final class AppModelTests: XCTestCase {
+    /// A model whose campaigns live in memory, so tests never touch files saved by earlier runs.
+    private func makeModel(directory: CampaignDirectory = InMemoryCampaignDirectory()) -> AppModel {
+        AppModel(campaigns: CampaignManager(directory: directory, persistence: InMemoryCampaignPersistence()))
+    }
+
     func testStartsWithNoCharactersOrCampaignsAndPlaceholderLibrary() {
-        let model = AppModel()
+        let model = makeModel()
         XCTAssertTrue(model.roster.characters.isEmpty)
-        XCTAssertTrue(model.campaignBook.campaigns.isEmpty)
+        XCTAssertTrue(model.campaigns.campaigns.isEmpty)
         XCTAssertFalse(model.libraryCategories.isEmpty)
     }
 
     func testAddAndDeleteCharacter() throws {
-        let model = AppModel()
+        let model = makeModel()
         try model.addCharacter(name: "Aria", race: "Elf", characterClass: "Wizard", level: 2)
         XCTAssertEqual(model.roster.characters.map(\.name), ["Aria"])
         model.deleteCharacters(atOffsets: IndexSet(integer: 0))
         XCTAssertTrue(model.roster.characters.isEmpty)
     }
 
-    func testCreateCampaign() throws {
-        let model = AppModel()
-        let campaign = try model.createCampaign(name: "Night Below")
-        XCTAssertEqual(campaign.role, .dungeonMaster)
-        XCTAssertEqual(model.campaignBook.campaigns, [campaign])
+    func testCreateCampaignMakesYouTheDMWithASixDigitCode() async throws {
+        let model = makeModel()
+        let campaign = try await model.createCampaign(name: "Night Below", yourName: "Dana")
+        XCTAssertEqual(model.campaigns.role(in: campaign), .dungeonMaster)
+        XCTAssertEqual(campaign.dungeonMaster.name, "Dana")
+        XCTAssertEqual(campaign.joinCode.count, 6)
+        XCTAssertTrue(campaign.joinCode.allSatisfy(\.isNumber))
+        XCTAssertEqual(model.campaigns.campaigns, [campaign])
     }
 
-    func testJoinCampaignUsesDirectory() throws {
-        let directory = InMemoryCampaignDirectory(campaigns: [Campaign(name: "Tomb", joinCode: "TMB234", role: .dungeonMaster)])
-        let model = AppModel(campaignDirectory: directory)
-        let joined = try model.joinCampaign(code: "tmb234")
+    func testFriendJoinsWithTheCodeAsAPlayer() async throws {
+        let shared = InMemoryCampaignDirectory()
+        let dm = makeModel(directory: shared)
+        let friend = makeModel(directory: shared)
+        let campaign = try await dm.createCampaign(name: "Tomb", yourName: "Dana")
+        let joined = try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria")
         XCTAssertEqual(joined.name, "Tomb")
-        XCTAssertEqual(joined.role, .player)
+        XCTAssertEqual(friend.campaigns.role(in: joined), .player)
+        XCTAssertEqual(joined.dungeonMaster.name, "Dana")
+        XCTAssertEqual(joined.players.map(\.name), ["Aria"])
+    }
+
+    func testDefaultCampaignsWithoutICloudOfferTheSampleAndArentShared() async throws {
+        let manager = CampaignManager.makeDefault(arguments: ["-inMemoryCampaigns"], cloudKitEnabled: false)
+        XCTAssertFalse(manager.isShared)
+        let joined = try await manager.join(code: InMemoryCampaignDirectory.sampleCode, yourName: "Aria")
+        XCTAssertEqual(joined.name, "The Sunken Citadel")
+        XCTAssertEqual(manager.role(in: joined), .player)
+    }
+
+    func testCloudKitCampaignRecordsRoundTrip() {
+        let campaign = Campaign(name: "Night Below", joinCode: "042917",
+                                dungeonMaster: CampaignMember(id: "dm", name: "Dana"))
+        let record = CloudKitCampaignDirectory.record(for: campaign)
+        XCTAssertEqual(record.recordType, "Campaign")
+        XCTAssertEqual(record.recordID.recordName, "campaign-042917")
+        XCTAssertEqual(CloudKitCampaignDirectory.campaign(from: record), campaign)
+
+        let aria = CampaignMember(id: "p1", name: "Aria")
+        let playerRecord = CloudKitCampaignDirectory.playerRecord(aria, code: "042917")
+        XCTAssertEqual(playerRecord.recordType, "CampaignPlayer")
+        XCTAssertEqual(playerRecord.recordID.recordName, "player-042917-p1")
+        XCTAssertEqual(playerRecord["joinCode"] as? String, "042917")
+        XCTAssertEqual(CloudKitCampaignDirectory.player(from: playerRecord), aria)
+
+        XCTAssertNil(CloudKitCampaignDirectory.campaign(from: CKRecord(recordType: "Campaign")))
     }
 
     func testItemLibraryShipsWithSRDItemsAndIsViewOnlyByDefault() async {
-        let model = AppModel()
+        let model = makeModel()
         XCTAssertGreaterThan(model.itemLibrary.catalog.baseItems.count, 250)
         await model.itemLibrary.refresh()
         XCTAssertFalse(model.itemLibrary.isCreator)
@@ -74,7 +112,7 @@ final class AppModelTests: XCTestCase {
     }
 
     func testCreateCharacterFromDraftUsesSRDRules() throws {
-        let model = AppModel()
+        let model = makeModel()
         var draft = CharacterDraft.starter(catalog: model.rules)
         draft.name = "Bram"
         let hero = try model.createCharacter(from: draft)
@@ -84,7 +122,7 @@ final class AppModelTests: XCTestCase {
     }
 
     func testCreateCharacterRejectsBlankName() {
-        let model = AppModel()
+        let model = makeModel()
         XCTAssertThrowsError(try model.createCharacter(from: CharacterDraft.starter())) {
             XCTAssertEqual($0 as? CharacterError, .emptyName)
         }
@@ -92,7 +130,7 @@ final class AppModelTests: XCTestCase {
     }
 
     func testAddExperienceReturnsLevelUpSummaryOnlyWhenLevelling() throws {
-        let model = AppModel()
+        let model = makeModel()
         var draft = CharacterDraft.starter()
         draft.name = "Bram"
         let hero = try model.createCharacter(from: draft)
@@ -106,7 +144,7 @@ final class AppModelTests: XCTestCase {
     }
 
     func testToggleSpellAndSpendImprovementPoint() throws {
-        let model = AppModel()
+        let model = makeModel()
         var draft = CharacterDraft.starter()
         draft.name = "Bram"
         draft.level = 4

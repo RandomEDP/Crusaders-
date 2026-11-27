@@ -7,6 +7,7 @@ final class HomeScreenUITests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
         app = XCUIApplication()
+        app.launchArguments.append("-inMemoryCampaigns")
         app.launch()
     }
 
@@ -102,18 +103,71 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(app.buttons["Join campaign"].exists)
     }
 
-    func testJoinSampleCampaign() {
-        app.buttons["home.campaigns"].tap()
-        app.buttons["campaigns.add"].tap()
-        app.buttons["Join campaign"].tap()
-
-        let field = app.textFields["campaignForm.field"]
-        XCTAssertTrue(field.waitForExistence(timeout: 5))
-        field.tap()
-        field.typeText("CRUSAD")
+    func testCreateCampaignGivesSixDigitCodeAndMakesYouTheDM() {
+        openCampaignForm("Create campaign")
+        fill("campaignForm.field", with: "Night Below")
+        fill("campaignForm.yourName", with: "Dana")
         app.buttons["campaignForm.submit"].tap()
 
-        XCTAssertTrue(app.staticTexts["The Sunken Citadel"].waitForExistence(timeout: 5))
+        let code = app.staticTexts["campaignForm.createdCode"]
+        XCTAssertTrue(code.waitForExistence(timeout: 10))
+        XCTAssertNotNil(code.label.range(of: #"^\d{3} \d{3}$"#, options: .regularExpression), code.label)
+        app.buttons["campaignForm.done"].tap()
+
+        let row = campaignRow(named: "Night Below")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        XCTAssertTrue(row.label.contains("Dungeon Master"), row.label)
+        row.tap()
+        XCTAssertTrue(app.staticTexts["campaign.code"].waitForExistence(timeout: 5))
+        XCTAssertEqual(app.staticTexts["campaign.code"].label, code.label)
+        XCTAssertTrue(app.staticTexts["Dana"].exists)
+        XCTAssertTrue(app.staticTexts["No players yet. Share the code to invite your party."].exists)
+    }
+
+    func testJoinSampleCampaignAsAPlayer() {
+        openCampaignForm("Join campaign")
+        fill("campaignForm.field", with: "123456")
+        fill("campaignForm.yourName", with: "Aria")
+        app.buttons["campaignForm.submit"].tap()
+
+        let row = campaignRow(named: "The Sunken Citadel")
+        XCTAssertTrue(row.waitForExistence(timeout: 10))
+        XCTAssertTrue(row.label.contains("Player"), row.label)
+        row.tap()
+        XCTAssertTrue(app.staticTexts["Sample DM"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["Aria"].exists)
+    }
+
+    func testJoinWithUnknownCodeShowsError() {
+        openCampaignForm("Join campaign")
+        fill("campaignForm.field", with: "000001")
+        fill("campaignForm.yourName", with: "Aria")
+        app.buttons["campaignForm.submit"].tap()
+        let error = app.staticTexts["campaignForm.error"]
+        XCTAssertTrue(error.waitForExistence(timeout: 10))
+        XCTAssertEqual(error.label, "No campaign uses that code.")
+    }
+
+    private func openCampaignForm(_ option: String) {
+        app.buttons["home.campaigns"].tap()
+        XCTAssertTrue(app.navigationBars["Campaigns"].waitForExistence(timeout: 5))
+        app.buttons["campaigns.add"].tap()
+        let button = app.buttons[option]
+        XCTAssertTrue(button.waitForExistence(timeout: 5))
+        button.tap()
+        XCTAssertTrue(app.textFields["campaignForm.field"].waitForExistence(timeout: 5))
+    }
+
+    private func fill(_ id: String, with text: String) {
+        let field = app.textFields[id]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(text)
+    }
+
+    /// A campaign's row. Its texts are merged into one button label.
+    private func campaignRow(named name: String) -> XCUIElement {
+        app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", name)).firstMatch
     }
 
     func testLibraryShowsCategories() {
