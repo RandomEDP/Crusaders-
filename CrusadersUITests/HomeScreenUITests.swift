@@ -123,7 +123,8 @@ final class HomeScreenUITests: XCTestCase {
 
         let code = app.staticTexts["campaignForm.createdCode"]
         XCTAssertTrue(code.waitForExistence(timeout: 10))
-        XCTAssertNotNil(code.label.range(of: #"^\d{3} \d{3}$"#, options: .regularExpression), code.label)
+        let shownCode = code.label
+        XCTAssertNotNil(shownCode.range(of: #"^\d{3} \d{3}$"#, options: .regularExpression), shownCode)
         app.buttons["campaignForm.done"].tap()
 
         let row = campaignRow(named: "Night Below")
@@ -131,7 +132,7 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(row.label.contains("Dungeon Master"), row.label)
         row.tap()
         XCTAssertTrue(app.staticTexts["campaign.code"].waitForExistence(timeout: 5))
-        XCTAssertEqual(app.staticTexts["campaign.code"].label, code.label)
+        XCTAssertEqual(app.staticTexts["campaign.code"].label, shownCode)
         XCTAssertTrue(app.staticTexts["Dana"].exists)
         XCTAssertTrue(app.staticTexts["No players yet. Share the code to invite your party."].exists)
     }
