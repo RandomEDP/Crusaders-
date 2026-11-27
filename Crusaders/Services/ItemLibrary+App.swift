@@ -4,7 +4,7 @@ import CrusadersKit
 extension ItemLibrary {
     /// Whether this build is signed for iCloud. Set by `CLOUDKIT_ENABLED` in project.yml.
     /// CloudKit must never be touched when this is off: without the entitlement the app would crash.
-    static var cloudKitEnabledInBuild: Bool {
+    nonisolated static var cloudKitEnabledInBuild: Bool {
         let value = Bundle.main.object(forInfoDictionaryKey: "CrusadersCloudKitEnabled") as? String
         return value?.uppercased() == "YES"
     }
