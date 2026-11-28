@@ -29,9 +29,9 @@ struct CharacterDetailsSections: View {
                 Label("Edit details and limited uses", systemImage: "pencil")
             }
             .accessibilityIdentifier("sheet.editDetails")
-        }
-        .sheet(isPresented: $isEditing) {
-            CharacterDetailsEditor(character: character)
+            .sheet(isPresented: $isEditing) {
+                CharacterDetailsEditor(character: character)
+            }
         }
 
         if !character.resources.isEmpty || hasSpellSlots {
