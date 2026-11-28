@@ -105,9 +105,10 @@ final class HomeScreenUITests: XCTestCase {
         let field = app.textFields["newCharacter.name"]
         XCTAssertTrue(field.waitForExistence(timeout: 5))
         field.tap()
-        field.typeText("Esme")
+        // Return closes the keyboard so the drags below scroll the form instead of landing on keys.
+        field.typeText("Esme\n")
 
-        let points = app.buttons["Points"]
+        let points = app.segmentedControls["newCharacter.abilityMethod"].buttons["Points"]
         scrollUntilHittable(points)
         points.tap()
         XCTAssertTrue(element(textContaining: "27 of 27").waitForExistence(timeout: 5))
