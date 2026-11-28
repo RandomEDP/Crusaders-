@@ -17,6 +17,8 @@ public struct LevelUpChange: Hashable, Sendable {
 public struct LevelUnlocks: Hashable, Sendable {
     public let level: Int
     public let hitPointIncrease: Int
+    /// The hit die roll behind the increase, when hit points are rolled.
+    public let hitPointRoll: Int?
     /// Set when the proficiency bonus goes up at this level.
     public let proficiencyBonus: Int?
     public let abilityScoreImprovement: Bool
@@ -72,7 +74,7 @@ public struct LevelUpSummary: Hashable, Identifiable, Sendable {
             let bonus = 2 + (level - 1) / 4
             let previousBonus = 2 + (level - 2) / 4
             return LevelUnlocks(
-                level: level, hitPointIncrease: hitPointIncrease,
+                level: level, hitPointIncrease: hitPointIncrease, hitPointRoll: sheet.hitPointRoll(forLevel: level),
                 proficiencyBonus: bonus > previousBonus ? bonus : nil,
                 abilityScoreImprovement: false, subclass: nil, features: [], spellSlotChanges: [],
                 cantripsGained: 0, spellsKnownGained: 0, newSpellLevel: nil,
@@ -111,6 +113,7 @@ public struct LevelUpSummary: Hashable, Identifiable, Sendable {
         return LevelUnlocks(
             level: level,
             hitPointIncrease: hitPointIncrease,
+            hitPointRoll: sheet.hitPointRoll(forLevel: level),
             proficiencyBonus: current.proficiencyBonus > previousBonus ? current.proficiencyBonus : nil,
             abilityScoreImprovement: current.abilityScoreImprovement,
             subclass: gainsSubclass ? characterClass.subclass : nil,
