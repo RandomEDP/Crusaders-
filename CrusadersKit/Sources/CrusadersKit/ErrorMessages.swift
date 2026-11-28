@@ -38,6 +38,7 @@ extension CampaignError: LocalizedError {
         case .invalidQuantity: return "Enter a quantity of 1 or more."
         case .itemNotInInventory: return "That item isn't in the inventory any more."
         case .playerNotFound: return "That player isn't in this campaign."
+        case .notYourCharacter: return "You can only change your own character's equipment."
         }
     }
 }
@@ -51,6 +52,23 @@ extension ChatError: LocalizedError {
         case .onlyDungeonMasterCanNarrate: return "Only the Dungeon Master can narrate."
         case .privateChatNotReady: return "Your private chat opens once the Dungeon Master opens it on their phone. Pull down to check again."
         case .unavailable: return "Couldn't reach iCloud. Check you're online and signed in to iCloud, then try again."
+        }
+    }
+}
+
+extension EquipError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .notInInventory: return "That item isn't in the inventory any more."
+        case .notEquippable: return "That item can't be worn or wielded."
+        case .needsBaseItem: return "Pick which armour or weapon this magic item is first."
+        case .invalidBaseItem: return "This magic item can't be made from that."
+        case .wrongSlot: return "That item doesn't go there."
+        case .needsBothHands(let item): return "This weapon needs both hands. Put away \(item) first."
+        case .handsFull(let item): return "Your hands are full. Put away \(item) first."
+        case .notVersatile: return "Only versatile weapons can be used with one or both hands."
+        case .noAttunementNeeded: return "That item doesn't need attunement."
+        case .attunementFull: return "You can only be attuned to \(Loadout.maxAttuned) magic items at once. End attunement to one first."
         }
     }
 }

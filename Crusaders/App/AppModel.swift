@@ -99,8 +99,24 @@ final class AppModel {
         roster.character(id: id)
     }
 
-    func sheet(for id: PlayerCharacter.ID) -> CharacterSheet? {
-        character(id: id).map { CharacterSheet(character: $0, catalog: rules) }
+    /// The character sheet with equipped items applied: from the campaign given, or else the first campaign
+    /// this user plays the character in.
+    func sheet(for id: PlayerCharacter.ID, campaignCode: String? = nil) -> CharacterSheet? {
+        character(id: id).map { CharacterSheet(character: $0, catalog: rules, gear: gear(for: id, campaignCode: campaignCode)) }
+    }
+
+    /// Campaigns where this user plays the character, in the order they were joined.
+    func campaigns(playing characterID: PlayerCharacter.ID) -> [Campaign] {
+        let me = campaigns.me.id
+        return campaigns.campaigns.filter { $0.player(id: me)?.character?.id == characterID }
+    }
+
+    /// What the character wears and holds in a campaign (or the first campaign they're in).
+    func gear(for characterID: PlayerCharacter.ID, campaignCode: String? = nil) -> EquippedGear {
+        let playing = campaigns(playing: characterID)
+        let campaign = campaignCode.flatMap { code in playing.first { $0.joinCode == code } } ?? playing.first
+        guard let campaign else { return .none }
+        return campaign.equippedGear(of: campaigns.me.id, catalog: itemLibrary.catalog)
     }
 
     /// Adds XP. Returns what the new levels unlock, or nil if the character didn't level up.
@@ -153,6 +169,35 @@ final class AppModel {
     @discardableResult
     func addItem(_ item: EquipmentItem, quantity: Int, to playerID: String, inCampaign code: String) async throws -> Campaign {
         try await campaigns.addItem(itemID: item.id, name: item.name, quantity: quantity, to: playerID, inCampaign: code)
+    }
+
+    // MARK: Equipment (the player who owns the character, or the DM)
+
+    @discardableResult
+    func equip(_ itemID: String, in slot: EquipSlot, base: String? = nil, for playerID: String,
+               inCampaign code: String) async throws -> Campaign {
+        try await campaigns.equip(itemID: itemID, in: slot, base: base, for: playerID, inCampaign: code,
+                                  catalog: itemLibrary.catalog)
+    }
+
+    @discardableResult
+    func unequip(_ itemID: String, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.unequip(itemID: itemID, for: playerID, inCampaign: code, catalog: itemLibrary.catalog)
+    }
+
+    @discardableResult
+    func setUsesBothHands(_ both: Bool, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.setUsesBothHands(both, for: playerID, inCampaign: code, catalog: itemLibrary.catalog)
+    }
+
+    @discardableResult
+    func attune(_ itemID: String, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.attune(itemID: itemID, for: playerID, inCampaign: code, catalog: itemLibrary.catalog)
+    }
+
+    @discardableResult
+    func endAttunement(_ itemID: String, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.endAttunement(itemID: itemID, for: playerID, inCampaign: code, catalog: itemLibrary.catalog)
     }
 
     /// The DM, or the player who owns the character, removes one of an item.

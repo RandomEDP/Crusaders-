@@ -258,4 +258,66 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(summary.levels.first?.hitPointRoll, 7)
         XCTAssertEqual(summary.levels.first?.hitPointIncrease, 9)
     }
+
+    // MARK: Equipment
+
+    func testEquippedItemsApplyToTheCharacterSheet() async throws {
+        let shared = InMemoryCampaignDirectory()
+        let dm = makeModel(directory: shared)
+        let friend = makeModel(directory: shared)
+        var draft = CharacterDraft.starter(catalog: friend.rules)
+        draft.name = "Thalia"
+        let hero = try friend.createCharacter(from: draft)
+        let campaign = try await dm.createCampaign(name: "Tomb", yourName: "Dana")
+        try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria", characterID: hero.id)
+        await dm.campaigns.refresh()
+
+        let before = try XCTUnwrap(friend.sheet(for: hero.id))
+        XCTAssertEqual(before.armorClass, 10 + before.modifier(.dex))
+        XCTAssertEqual(friend.campaigns(playing: hero.id).map(\.joinCode), [campaign.joinCode])
+
+        let playerID = friend.campaigns.me.id
+        for id in ["chain-mail", "shield", "longsword"] {
+            let item = try XCTUnwrap(dm.itemLibrary.catalog.item(id: id))
+            try await dm.addItem(item, quantity: 1, to: playerID, inCampaign: campaign.joinCode)
+        }
+        await friend.campaigns.refresh()
+        try await friend.equip("chain-mail", in: .armour, for: playerID, inCampaign: campaign.joinCode)
+        try await friend.equip("shield", in: .shield, for: playerID, inCampaign: campaign.joinCode)
+        try await friend.equip("longsword", in: .mainHand, for: playerID, inCampaign: campaign.joinCode)
+
+        let after = try XCTUnwrap(friend.sheet(for: hero.id, campaignCode: campaign.joinCode))
+        XCTAssertEqual(after.armorClass, 18, "chain mail 16 + shield 2")
+        XCTAssertTrue(after.hasStealthDisadvantage)
+        XCTAssertEqual(after.attacks.map(\.name), ["Longsword"])
+        XCTAssertEqual(after.attacks.first?.attackBonus, after.modifier(.str) + after.proficiencyBonus)
+        // With no campaign given, the sheet uses the first campaign the character plays in.
+        XCTAssertEqual(friend.sheet(for: hero.id)?.armorClass, 18)
+
+        try await friend.unequip("shield", for: playerID, inCampaign: campaign.joinCode)
+        XCTAssertEqual(friend.sheet(for: hero.id)?.armorClass, 16)
+    }
+
+    func testCharactersOutsideCampaignsHaveNoGear() throws {
+        let model = makeModel()
+        var draft = CharacterDraft.starter(catalog: model.rules)
+        draft.name = "Loner"
+        let hero = try model.createCharacter(from: draft)
+        XCTAssertEqual(model.gear(for: hero.id), .none)
+        XCTAssertTrue(model.campaigns(playing: hero.id).isEmpty)
+    }
+
+    func testCloudKitLoadoutRecordsRoundTrip() {
+        let loadout = Loadout(armourID: "armor-plus-1", shieldID: "shield", mainHandID: "longsword",
+                              attunedIDs: ["holy-avenger"], baseItemIDs: ["armor-plus-1": "chain-mail"])
+        let change = LoadoutChange(playerID: "p1", loadout: loadout, authorID: "dm", date: Date(timeIntervalSince1970: 2_000))
+        let record = CloudKitCampaignDirectory.loadoutRecord(change, code: "042917")
+        XCTAssertEqual(record.recordType, "LoadoutChange")
+        XCTAssertEqual(record.recordID.recordName, "loadout-\(change.id.uuidString)")
+        XCTAssertEqual(record["joinCode"] as? String, "042917")
+        XCTAssertEqual(CloudKitCampaignDirectory.loadoutChange(from: record), change)
+
+        record["loadout"] = "not json" as CKRecordValue
+        XCTAssertNil(CloudKitCampaignDirectory.loadoutChange(from: record))
+    }
 }

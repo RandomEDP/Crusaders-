@@ -20,11 +20,14 @@ public struct CharacterSheet: Sendable {
     public let race: Race?
     public let subrace: Subrace?
     public let characterClass: CharacterClass?
+    /// Worn and held items and attunements. Their AC, attack, speed and save changes show on the sheet.
+    public let gear: EquippedGear
     private let catalog: RulesCatalog
 
-    public init(character: PlayerCharacter, catalog: RulesCatalog = .srd) {
+    public init(character: PlayerCharacter, catalog: RulesCatalog = .srd, gear: EquippedGear = .none) {
         self.character = character
         self.catalog = catalog
+        self.gear = gear
         let race = catalog.race(id: character.raceID)
         self.race = race
         self.subrace = race?.subrace(id: character.subraceID)
@@ -78,15 +81,20 @@ public struct CharacterSheet: Sendable {
 
     // MARK: Combat
 
-    public var speed: Int { race?.speed ?? 30 }
+    /// Walking speed before armour: the race's speed.
+    public var baseSpeed: Int { race?.speed ?? 30 }
+
+    /// Walking speed, 10 feet slower in heavy armour the character isn't strong enough for (see `armourSpeedPenalty`).
+    public var speed: Int { max(0, baseSpeed - armourSpeedPenalty) }
 
     public var initiative: Int { modifier(.dex) }
 
     public var hitDie: Int { characterClass?.hitDie ?? 8 }
 
     /// Max hit points using the fixed value for each level after the first.
+    /// Includes hit points from attuned magic items (Berserker Axe).
     public var maxHitPoints: Int {
-        hitPoints(atLevel: level)
+        hitPoints(atLevel: level) + gearHitPointsPerLevel * level
     }
 
     /// Max hit points the character would have at a level, with today's Constitution.
@@ -125,8 +133,9 @@ public struct CharacterSheet: Sendable {
         characterClass?.savingThrows.contains(ability) ?? false
     }
 
+    /// Includes bonuses from magic items (Luck Blade).
     public func savingThrow(_ ability: Ability) -> Int {
-        modifier(ability) + (isProficient(save: ability) ? proficiencyBonus : 0)
+        modifier(ability) + (isProficient(save: ability) ? proficiencyBonus : 0) + gearSavingThrowBonus
     }
 
     public func isProficient(_ skill: Skill) -> Bool {

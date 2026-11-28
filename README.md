@@ -59,6 +59,17 @@ Campaigns > + > **Create campaign** asks for a campaign name and your name, then
 
 **Inventory.** Each campaign has Party, Inventory and Chat tabs (see Campaign chat). On Inventory, the DM sees every player's character and can **add** Library items (with a quantity). Players see their own character's items. Both the DM and that player can **remove** items with the − button. Every add or remove is saved as its own `InventoryChange`, and the inventory is worked out from them, so a player never edits the DM's records. Changes the rules don't allow (a player adding, or removing from someone else) are ignored. In Debug, the launch argument `-dmTestCampaign` starts you as DM of "Test Table" (code `654321`) with one player, for UI tests.
 
+**Equipping items (5e SRD rules).** On Inventory, the player (or the DM) taps the shield button next to a weapon or armour to wear, wield or attune to it. The rules, in `CrusadersKit/Sources/CrusadersKit/Equipment`:
+
+- One suit of body armour and one shield. Wearing new armour swaps out the old.
+- Two hands: a shield takes the off hand; two-handed weapons need both hands; versatile weapons can be switched to two hands for the bigger damage die; light weapons in both hands give the two-weapon fighting bonus attack (no ability modifier on off-hand damage).
+- AC: light armour = base + Dex, medium = base + Dex (max +2), heavy = base only, shield +2, plus magic bonuses. With no armour: 10 + Dex, or Unarmored Defense (Barbarian 10 + Dex + Con, Monk 10 + Dex + Wis with no shield) or Draconic Resilience (13 + Dex).
+- Heavy armour below its Strength requirement makes you 10 ft slower (not for dwarves). Armour with Stealth disadvantage flags the Stealth skill. Armour you aren't proficient with shows a warning (disadvantage, no spellcasting).
+- Attacks use Str (melee), Dex (ranged) or the better of the two (finesse), plus proficiency if the class or race is proficient, plus magic bonuses.
+- Magic weapons and armour like "Armor, +1" ask which armour or weapon they are. Items that need attunement only work once attuned; at most 3 at a time.
+
+The changes show on the character sheet automatically (Armor Class, speed, attacks, saves, hit points), on the phone of the player who owns the character. Every change is saved as a `LoadoutChange`, and items the DM later removes simply drop off.
+
 Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
 
 **Sharing between phones needs iCloud.** While iCloud is switched off (see Library items), campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
@@ -70,8 +81,9 @@ In the CloudKit Dashboard, public database, after the container from the Library
 1. Create record type `Campaign` with fields `name`, `joinCode`, `dmID`, `dmName` (all String). Records are named `campaign-<code>`, which keeps codes unique.
 2. Create record type `CampaignPlayer` with fields `joinCode` (String, **queryable**), `memberID`, `name`, `characterID`, `characterName`, `characterSummary` (all String).
 3. Create record type `InventoryChange` with fields `joinCode` (String, **queryable**), `playerID`, `itemID`, `itemName`, `authorID` (String), `delta` (Int64), `changedAt` (Date/Time).
-4. Security for all three: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
-5. Deploy the schema to Production.
+4. Create record type `LoadoutChange` with fields `joinCode` (String, **queryable**), `playerID`, `authorID`, `loadout` (String), `changedAt` (Date/Time).
+5. Security for all four: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
+6. Deploy the schema to Production.
 
 ## Campaign chat
 

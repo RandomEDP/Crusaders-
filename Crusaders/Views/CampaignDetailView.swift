@@ -15,6 +15,16 @@ struct CampaignDetailView: View {
     @State private var tab: Tab = .party
     @State private var addingTo: CampaignMember?
     @State private var errorMessage: String?
+    @State private var choosingBase: BaseChoice?
+
+    /// A magic item like "Armor, +1" waiting for the player to say which armour or weapon it is.
+    struct BaseChoice: Identifiable {
+        let itemID: String
+        let itemName: String
+        let playerID: String
+        let options: [EquipmentItem]
+        var id: String { "\(playerID)-\(itemID)" }
+    }
 
     var body: some View {
         let manager = model.campaigns
@@ -50,6 +60,11 @@ struct CampaignDetailView: View {
             .sheet(item: $addingTo) { player in
                 InventoryItemPicker(player: player) { item, quantity in
                     _ = try await model.addItem(item, quantity: quantity, to: player.id, inCampaign: code)
+                }
+            }
+            .sheet(item: $choosingBase) { choice in
+                BaseItemPicker(choice: choice) { base in
+                    await equip(choice, as: base)
                 }
             }
         } else {
@@ -193,25 +208,35 @@ struct CampaignDetailView: View {
         }
 
         ForEach(players) { player in
+            let entries = campaign.inventory(of: player.id)
+            let loadout = campaign.loadout(of: player.id).sanitized(inventory: entries, catalog: model.itemLibrary.catalog)
+            let canEquip = isDM || player.id == manager.me.id
             ThemedSection {
-                let entries = campaign.inventory(of: player.id)
+                if let characterID = player.character?.id, player.id == manager.me.id,
+                   let sheet = model.sheet(for: characterID, campaignCode: code) {
+                    NavigationLink {
+                        CharacterSheetView(characterID: characterID, campaignCode: code)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("AC \(sheet.armorClass) · Speed \(sheet.speed) ft")
+                                .font(.serifBold(.headline))
+                                .accessibilityIdentifier("inventory.summary")
+                            Text("Open character sheet").font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
+                        }
+                    }
+                    .accessibilityIdentifier("inventory.sheet")
+                }
                 if entries.isEmpty {
                     Text("No items yet.").foregroundStyle(Theme.inkSoft)
                 }
                 ForEach(entries) { entry in
-                    HStack {
-                        Text("\(entry.name) ×\(entry.quantity)")
-                            .accessibilityIdentifier("inventory.item.\(entry.itemID)")
-                        Spacer()
-                        Button {
-                            Task { await remove(entry, from: player) }
-                        } label: {
-                            Image(systemName: "minus.circle")
-                        }
-                        .buttonStyle(.borderless)
-                        .accessibilityLabel("Remove one \(entry.name)")
-                        .accessibilityIdentifier("inventory.remove.\(entry.itemID)")
-                    }
+                    InventoryRow(
+                        entry: entry,
+                        loadout: loadout,
+                        canEquip: canEquip,
+                        perform: { action in Task { await perform(action, on: entry, for: player) } },
+                        remove: { Task { await remove(entry, from: player) } }
+                    )
                 }
                 if isDM {
                     Button {
@@ -224,10 +249,55 @@ struct CampaignDetailView: View {
             } header: {
                 Text(player.character.map { "\($0.name) (\(player.name))" } ?? player.name)
             } footer: {
-                if !isDM {
-                    Text("Only the Dungeon Master can add items. Tap − when you use or drop one.")
+                VStack(alignment: .leading, spacing: 4) {
+                    if !loadout.attunedIDs.isEmpty {
+                        Text("Attuned to \(loadout.attunedIDs.count) of \(Loadout.maxAttuned) magic items.")
+                            .accessibilityIdentifier("inventory.attunement")
+                    }
+                    if !isDM {
+                        Text("Only the Dungeon Master can add items. Tap the shield to wear, wield or attune, and − when you use or drop one.")
+                    }
                 }
             }
+        }
+    }
+
+    private func perform(_ action: InventoryRow.Action, on entry: InventoryEntry, for player: CampaignMember) async {
+        do {
+            switch action {
+            case .equip(let slot):
+                try await model.equip(entry.itemID, in: slot, for: player.id, inCampaign: code)
+            case .chooseBase:
+                let catalog = model.itemLibrary.catalog
+                guard let item = catalog.item(id: entry.itemID) else { return }
+                choosingBase = BaseChoice(itemID: item.id, itemName: item.name, playerID: player.id,
+                                          options: GearItem.baseOptions(for: item, in: catalog))
+                return
+            case .unequip:
+                try await model.unequip(entry.itemID, for: player.id, inCampaign: code)
+            case .bothHands(let both):
+                try await model.setUsesBothHands(both, for: player.id, inCampaign: code)
+            case .attune:
+                try await model.attune(entry.itemID, for: player.id, inCampaign: code)
+            case .endAttunement:
+                try await model.endAttunement(entry.itemID, for: player.id, inCampaign: code)
+            }
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
+    /// Equips a magic item as the armour or weapon picked for it.
+    private func equip(_ choice: BaseChoice, as base: EquipmentItem) async {
+        let catalog = model.itemLibrary.catalog
+        guard let item = catalog.item(id: choice.itemID),
+              let slot = GearItem(item: item, base: base).allowedSlots.first else { return }
+        do {
+            try await model.equip(choice.itemID, in: slot, base: base.id, for: choice.playerID, inCampaign: code)
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -300,6 +370,161 @@ struct InventoryItemPicker: View {
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
+        }
+    }
+}
+
+/// One inventory line: name, quantity, where it's worn or held, and the equip menu.
+struct InventoryRow: View {
+    enum Action {
+        case equip(EquipSlot)
+        /// Pick which armour or weapon a magic item is, then equip it.
+        case chooseBase
+        case unequip
+        case bothHands(Bool)
+        case attune
+        case endAttunement
+    }
+
+    let entry: InventoryEntry
+    let loadout: Loadout
+    let canEquip: Bool
+    let perform: (Action) -> Void
+    let remove: () -> Void
+
+    @Environment(AppModel.self) private var model
+
+    var body: some View {
+        let catalog = model.itemLibrary.catalog
+        let gear = loadout.gear(entry.itemID, catalog: catalog)
+        let baseOptions = catalog.item(id: entry.itemID).map { GearItem.baseOptions(for: $0, in: catalog) } ?? []
+        HStack {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("\(entry.name) ×\(entry.quantity)")
+                    .accessibilityIdentifier("inventory.item.\(entry.itemID)")
+                if let status = status(gear) {
+                    Text(status)
+                        .font(.serif(.caption))
+                        .foregroundStyle(Theme.inkSoft)
+                        .accessibilityIdentifier("inventory.status.\(entry.itemID)")
+                }
+            }
+            Spacer()
+            if canEquip, let gear, !gear.allowedSlots.isEmpty || gear.item.requiresAttunement || !baseOptions.isEmpty {
+                Menu {
+                    menuItems(gear, baseOptions: baseOptions)
+                } label: {
+                    Image(systemName: loadout.isEquipped(entry.itemID) ? "shield.fill" : "shield")
+                        .padding(.horizontal, 6)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Equip \(entry.name)")
+                .accessibilityIdentifier("inventory.equip.\(entry.itemID)")
+            }
+            Button(action: remove) {
+                Image(systemName: "minus.circle")
+            }
+            .buttonStyle(.borderless)
+            .accessibilityLabel("Remove one \(entry.name)")
+            .accessibilityIdentifier("inventory.remove.\(entry.itemID)")
+        }
+    }
+
+    /// e.g. "Worn", "Main hand · Off hand", "Both hands · Attuned"
+    private func status(_ gear: GearItem?) -> String? {
+        var parts: [String] = []
+        for slot in loadout.slots(of: entry.itemID) {
+            if slot == .mainHand, let gear, gear.isTwoHanded || (loadout.usesBothHands && gear.isVersatile) {
+                parts.append("Both hands")
+            } else {
+                parts.append(slot.title)
+            }
+        }
+        if let gear, gear.base != nil, gear.item.weapon == nil, gear.item.armour == nil, !parts.isEmpty {
+            parts.insert(gear.name, at: 0)
+        }
+        if loadout.isAttuned(entry.itemID) { parts.append("Attuned") }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    @ViewBuilder
+    private func menuItems(_ gear: GearItem, baseOptions: [EquipmentItem]) -> some View {
+        let slots = loadout.slots(of: entry.itemID)
+        if gear.allowedSlots.isEmpty && !baseOptions.isEmpty {
+            Button("Choose what it is and equip…") { perform(.chooseBase) }
+        }
+        if gear.allowedSlots.contains(.armour) && !slots.contains(.armour) {
+            Button("Wear") { perform(.equip(.armour)) }
+        }
+        if gear.allowedSlots.contains(.shield) && !slots.contains(.shield) {
+            Button("Hold shield") { perform(.equip(.shield)) }
+        }
+        if gear.allowedSlots.contains(.mainHand) && !slots.contains(.mainHand) {
+            Button(gear.isTwoHanded ? "Hold in both hands" : "Hold in main hand") { perform(.equip(.mainHand)) }
+        }
+        if gear.allowedSlots.contains(.offHand) && !slots.contains(.offHand) {
+            Button("Hold in off hand") { perform(.equip(.offHand)) }
+        }
+        if gear.isVersatile && slots.contains(.mainHand) {
+            if loadout.usesBothHands {
+                Button("Use with one hand") { perform(.bothHands(false)) }
+            } else {
+                Button("Use with both hands") { perform(.bothHands(true)) }
+            }
+        }
+        if !slots.isEmpty {
+            Button(gear.armour != nil && gear.armour?.kind != .shield ? "Take off" : "Put away") { perform(.unequip) }
+        }
+        if baseOptions.count > 1 && !gear.allowedSlots.isEmpty {
+            Button("Change what it is…") { perform(.chooseBase) }
+        }
+        if gear.item.requiresAttunement {
+            if gear.isAttuned {
+                Button("End attunement") { perform(.endAttunement) }
+            } else {
+                Button("Attune (\(loadout.attunedIDs.count) of \(Loadout.maxAttuned) used)") { perform(.attune) }
+            }
+        }
+    }
+}
+
+/// Picks which armour or weapon a magic item is, e.g. "Armor, +1" as Chain Mail.
+struct BaseItemPicker: View {
+    let choice: CampaignDetailView.BaseChoice
+    let pick: (EquipmentItem) async -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ThemedSection {
+                    ForEach(choice.options) { option in
+                        Button {
+                            Task {
+                                await pick(option)
+                                dismiss()
+                            }
+                        } label: {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(option.name).foregroundStyle(Theme.ink)
+                                Text(option.summary).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
+                            }
+                        }
+                        .accessibilityIdentifier("basePicker.item.\(option.id)")
+                    }
+                } footer: {
+                    Text("Which armour or weapon is your \(choice.itemName)?")
+                }
+            }
+            .navigationTitle(choice.itemName)
+            .parchmentScreen()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+            }
         }
     }
 }
