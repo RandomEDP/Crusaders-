@@ -51,6 +51,31 @@ With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in m
 
 Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Library creatures
+
+Library > Creatures holds all 334 monsters, beasts and NPCs from the SRD 5.1 with full stat blocks (AC, hit points, speed, ability scores, saves, skills, resistances, senses, languages, challenge rating with XP, traits, actions, reactions and legendary actions). They sit under collapsible headers by type (Aberrations, Beasts, Dragons...). Search by name, type, subtype, or challenge rating such as `CR 1/4`.
+
+The built-in list is `CrusadersKit/Sources/CrusadersKit/Resources/srd-creatures.json`, generated from the [5e-bits/5e-database](https://github.com/5e-bits/5e-database) monsters JSON with `python3 scripts/srd/convert_creatures.py <5e-database>/src/2014/en/5e-SRD-Monsters.json CrusadersKit/Sources/CrusadersKit/Resources/srd-creatures.json`. Don't edit it by hand. Monsters outside the SRD (for example from the Monster Manual only, Volo's or Mordenkainen's) are copyrighted and aren't included; the creator can add their own instead.
+
+### Creator tools
+
+The creator (the same creator list as Library items) gets:
+
+- A **+** button on Library > Creatures to add a new creature, with every part of the stat block, and any number of traits, actions, reactions and legendary actions.
+- An **Edit** button on every creature. **Reset to SRD stats** removes edits to an SRD creature; **Delete creature** removes one the creator added.
+
+Rules (validation, who can edit) are in `CrusadersKit/Sources/CrusadersKit/Creatures` and are unit tested. Added creatures are marked with a star, edited ones with a pencil.
+
+Creatures follow the same iCloud switch as items: with iCloud off, creator tools are off in TestFlight; in Debug, `-creatorMode` turns them on (changes stay in memory).
+
+### iCloud setup for creatures (once, by the Apple account owner)
+
+In the CloudKit Dashboard, public database, after the Library items setup:
+
+1. Create record type `CreatureEntry` with fields `creatureID` (String) and `payload` (String). Add a queryable index on `recordName`. Records are named `creature-<id>`: SRD ids like `goblin` are edits, ids starting `custom-` are creatures the creator added.
+2. Security: World can read. Only the **Creator** role can create or write (the same role as `ItemOverride`).
+3. Deploy the schema to Production.
+
 ## Campaigns
 
 Campaigns > + > **Create campaign** asks for a campaign name and your name, then makes a random **6-digit join code** (for example `042 917`). Whoever creates the campaign is its **Dungeon Master**. Other players use **Join campaign**, enter the code and their name, and are listed as **Players**. Tap a campaign to see its code (with a Share button), the DM and the players. Pull down to refresh the player list.

@@ -5,7 +5,7 @@ import CrusadersKit
 /// App-wide state shared by every screen.
 /// Characters are saved through `characterStore` (SwiftData, synced with iCloud when it's on; see `CharacterPersistence`).
 /// Campaigns are saved on the phone and shared through CloudKit once iCloud is on (see `CampaignManager.makeDefault`).
-/// Library item edits sync through CloudKit (see `ItemLibrary.makeDefault`).
+/// Library item edits and the creator's creatures sync through CloudKit (see `ItemLibrary.makeDefault`, `CreatureLibrary.makeDefault`).
 @MainActor
 @Observable
 final class AppModel {
@@ -19,6 +19,8 @@ final class AppModel {
     let chat: CampaignChat
     let libraryCategories: [LibraryCategory]
     let itemLibrary: ItemLibrary
+    /// Library > Creatures: SRD monsters plus the creator's own.
+    let creatureLibrary: CreatureLibrary
     let rules: RulesCatalog
     /// Rolls hit dice on level-up for characters that roll hit points.
     let diceRoller: DiceRoller
@@ -30,6 +32,7 @@ final class AppModel {
         library: LibraryCatalog = PlaceholderLibraryCatalog(),
         rules: RulesCatalog = .srd,
         itemLibrary: ItemLibrary? = nil,
+        creatureLibrary: CreatureLibrary? = nil,
         characterStore: CharacterStore? = nil,
         characterStorageMode: CharacterPersistence.Mode = .memory(reason: nil),
         diceRoller: DiceRoller = .random
@@ -43,6 +46,7 @@ final class AppModel {
         self.characterStorageMode = characterStorageMode
         self.libraryCategories = library.categories()
         self.itemLibrary = itemLibrary ?? ItemLibrary.makeDefault()
+        self.creatureLibrary = creatureLibrary ?? CreatureLibrary.makeDefault()
         self.rules = rules
         if characterStore != nil {
             reloadCharacters()

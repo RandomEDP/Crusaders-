@@ -40,7 +40,8 @@ public struct LibraryCategory: Identifiable, Hashable, Codable, Sendable {
 }
 
 /// Where library content comes from. The placeholder catalog is used until creator uploads exist.
-/// Weapons, armour, potions and other equipment live in Library > Items (see `ItemCatalog`).
+/// Weapons, armour, potions and other equipment live in Library > Items (see `ItemCatalog`),
+/// and monsters in Library > Creatures (see `CreatureCatalog`).
 public protocol LibraryCatalog: Sendable {
     func categories() -> [LibraryCategory]
 }
@@ -53,11 +54,6 @@ public struct PlaceholderLibraryCatalog: LibraryCatalog {
     }
 
     static let data: [LibraryCategory] = [
-        LibraryCategory(id: "creatures", name: "Creatures", systemImage: "pawprint", items: [
-            LibraryItem(id: "goblin", name: "Goblin", summary: "Small, sneaky and always in a group.", creator: "Crusaders"),
-            LibraryItem(id: "owlbear", name: "Owlbear", summary: "Half owl, half bear, all trouble.", creator: "Crusaders"),
-            LibraryItem(id: "young-red-dragon", name: "Young Red Dragon", summary: "Greedy, proud and breathes fire.", creator: "Crusaders")
-        ]),
         LibraryCategory(id: "spells", name: "Spells", systemImage: "sparkles", items: [
             LibraryItem(id: "fire-bolt", name: "Fire Bolt", summary: "Cantrip, ranged fire attack.", creator: "Crusaders"),
             LibraryItem(id: "cure-wounds", name: "Cure Wounds", summary: "1st level, heal a creature you touch.", creator: "Crusaders")
