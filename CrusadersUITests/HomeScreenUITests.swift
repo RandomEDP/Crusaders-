@@ -93,7 +93,13 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
         XCTAssertEqual(row.value as? String, "Known")
-        app.buttons["spells.done"].tap()
+        // An active search hides the toolbar, so close it to get Done back.
+        let cancel = app.buttons["Cancel"].firstMatch
+        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
+        cancel.tap()
+        let done = app.buttons["spells.done"]
+        XCTAssertTrue(done.waitForExistence(timeout: 5))
+        done.tap()
 
         XCTAssertTrue(element(labelContaining: "Fire Bolt").waitForExistence(timeout: 5))
     }
