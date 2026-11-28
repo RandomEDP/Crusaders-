@@ -99,6 +99,46 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(element(labelContaining: "Fire Bolt").waitForExistence(timeout: 5))
     }
 
+    func testPointBuyAndClassPreset() {
+        app.buttons["home.characters"].tap()
+        app.buttons["characters.add"].tap()
+        let field = app.textFields["newCharacter.name"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        // Return closes the keyboard so the drags below scroll the form instead of landing on keys.
+        field.typeText("Esme\n")
+
+        let points = app.segmentedControls["newCharacter.abilityMethod"].buttons["Points"]
+        scrollUntilHittable(points)
+        points.tap()
+        XCTAssertTrue(element(textContaining: "27 of 27").waitForExistence(timeout: 5))
+
+        let presets = app.buttons["newCharacter.presets"]
+        scrollUntilHittable(presets)
+        presets.tap()
+        let archer = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Archer")).firstMatch
+        XCTAssertTrue(archer.waitForExistence(timeout: 5))
+        archer.tap()
+        XCTAssertTrue(element(textContaining: "0 of 27").waitForExistence(timeout: 5))
+
+        app.buttons["newCharacter.create"].tap()
+        XCTAssertTrue(characterRow(named: "Esme").waitForExistence(timeout: 5))
+    }
+
+    private func scrollUntilHittable(_ element: XCUIElement) {
+        // Short drags rather than swipes, so the form doesn't fling past the control.
+        for _ in 0..<20 where !(element.exists && element.isHittable) {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)))
+        }
+    }
+
+    private func element(textContaining text: String) -> XCUIElement {
+        app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS %@ OR value CONTAINS %@", text, text))
+            .firstMatch
+    }
+
     private func createCharacter(named name: String) {
         app.buttons["home.characters"].tap()
         XCTAssertTrue(app.navigationBars["Characters"].waitForExistence(timeout: 5))

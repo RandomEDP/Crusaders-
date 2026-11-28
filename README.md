@@ -103,6 +103,12 @@ In the CloudKit Dashboard, after the campaign setup above:
 
 `Info.plist` has `CKSharingSupported` set, which CloudKit sharing needs.
 
+## Building a character
+
+- **Ability scores**: standard array, point buy (27 points, 8 to 15), 4d6 drop the lowest (rolled in the app, with reroll), or custom scores rolled at the table. In array and rolled modes, the arrows on a score swap it with another.
+- **Presets**: the wand button on Ability scores gives three builds per class for different play styles (for example Fighter: Tank, Archer, Duelist). It places the best scores where that build needs them and picks its skills, using the current scores' method.
+- **Hit points**: fixed (half the hit die + 1 per level) or rolled hit dice. Level 1 always takes the full die. Rolled characters roll again on each level-up, and the level-up screen shows the roll.
+
 ## Saving characters
 
 Characters are saved with SwiftData, so they're still there after the app closes. With iCloud on, SwiftData also mirrors them to each player's **private** CloudKit database, so they sync across every device signed in to the same Apple ID. Nobody else can see them.

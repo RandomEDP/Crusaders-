@@ -17,6 +17,7 @@ extension CharacterError: LocalizedError {
         case .noImprovementPoints: return "No Ability Score Improvement points left to spend."
         case .abilityAtMaximum: return "Abilities can't go above 20."
         case .characterNotFound: return "That character no longer exists."
+        case .invalidHitPointRolls: return "Roll hit points for every level, or switch to fixed hit points."
         }
     }
 }

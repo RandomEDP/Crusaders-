@@ -20,6 +20,8 @@ final class AppModel {
     let libraryCategories: [LibraryCategory]
     let itemLibrary: ItemLibrary
     let rules: RulesCatalog
+    /// Rolls hit dice on level-up for characters that roll hit points.
+    let diceRoller: DiceRoller
 
     init(
         roster: CharacterRoster = CharacterRoster(),
@@ -29,9 +31,11 @@ final class AppModel {
         rules: RulesCatalog = .srd,
         itemLibrary: ItemLibrary? = nil,
         characterStore: CharacterStore? = nil,
-        characterStorageMode: CharacterPersistence.Mode = .memory(reason: nil)
+        characterStorageMode: CharacterPersistence.Mode = .memory(reason: nil),
+        diceRoller: DiceRoller = .random
     ) {
         self.roster = roster
+        self.diceRoller = diceRoller
         let campaigns = campaigns ?? CampaignManager.makeDefault()
         self.campaigns = campaigns
         self.chat = chat ?? CampaignChat.makeDefault(sharedThroughCloudKit: campaigns.isShared)
@@ -102,7 +106,13 @@ final class AppModel {
     /// Adds XP. Returns what the new levels unlock, or nil if the character didn't level up.
     @discardableResult
     func addExperience(_ amount: Int, to id: PlayerCharacter.ID) throws -> LevelUpSummary? {
-        let gained = try roster.update(id: id) { try $0.addExperience(amount) }
+        let hitDie = rules.characterClass(id: roster.character(id: id)?.classID)?.hitDie ?? 8
+        let roller = diceRoller
+        let gained = try roster.update(id: id) { character -> ClosedRange<Int>? in
+            let gained = try character.addExperience(amount)
+            character.rollMissingHitPoints(hitDie: hitDie, roller: roller)
+            return gained
+        }
         persist(id)
         guard let gained, let hero = roster.character(id: id) else { return nil }
         return LevelUpSummary(character: hero, fromLevel: gained.lowerBound - 1, catalog: rules)

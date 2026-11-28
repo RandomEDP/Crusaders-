@@ -93,8 +93,24 @@ public struct CharacterSheet: Sendable {
     public func hitPoints(atLevel targetLevel: Int) -> Int {
         let constitution = modifier(.con)
         let first = max(1, hitDie + constitution)
-        let later = max(1, hitDie / 2 + 1 + constitution) * max(0, targetLevel - 1)
+        var later = 0
+        if targetLevel >= 2 {
+            for level in 2...targetLevel {
+                if let roll = hitPointRoll(forLevel: level) {
+                    later += max(1, roll + constitution)
+                } else {
+                    later += max(1, hitDie / 2 + 1 + constitution)
+                }
+            }
+        }
         return first + later + extraHitPointsPerLevel(atLevel: targetLevel) * targetLevel
+    }
+
+    /// The hit die roll for a level, when hit points are rolled and that level has a roll.
+    public func hitPointRoll(forLevel level: Int) -> Int? {
+        guard character.hitPointMethod == .rolled, level >= 2 else { return nil }
+        let index = level - 2
+        return index < character.hitPointRolls.count ? character.hitPointRolls[index] : nil
     }
 
     /// Hill Dwarf's Dwarven Toughness and the Draconic Bloodline's Draconic Resilience.

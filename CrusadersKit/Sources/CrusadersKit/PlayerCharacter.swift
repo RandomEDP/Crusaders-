@@ -26,6 +26,10 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
     public var experiencePoints: Int
     /// Spells the character knows or has prepared.
     public var spellIDs: Set<String>
+    /// Whether hit points use the fixed value per level or rolled hit dice.
+    public var hitPointMethod: HitPointMethod
+    /// Hit die rolls for levels 2, 3, 4… when `hitPointMethod` is `.rolled`. Level 1 always takes the full die.
+    public var hitPointRolls: [Int]
 
     public init(
         id: UUID = UUID(),
@@ -41,7 +45,9 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         improvementPoints: [Ability] = [],
         skillProficiencies: Set<Skill> = [],
         experiencePoints: Int? = nil,
-        spellIDs: Set<String> = []
+        spellIDs: Set<String> = [],
+        hitPointMethod: HitPointMethod = .fixed,
+        hitPointRolls: [Int] = []
     ) {
         self.id = id
         self.name = name
@@ -57,12 +63,15 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         self.skillProficiencies = skillProficiencies
         self.experiencePoints = experiencePoints ?? Experience.minimumXP(forLevel: level)
         self.spellIDs = spellIDs
+        self.hitPointMethod = hitPointMethod
+        self.hitPointRolls = hitPointRolls
     }
 
     enum CodingKeys: String, CodingKey {
         case id, name, race, characterClass, level
         case raceID, subraceID, classID, baseAbilityScores, racialBonusChoices
         case improvementPoints, skillProficiencies, experiencePoints, spellIDs
+        case hitPointMethod, hitPointRolls
     }
 
     /// Reads saved characters. Anything missing gets a default, so characters saved by
@@ -84,7 +93,9 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
             improvementPoints: try container.decodeIfPresent([Ability].self, forKey: .improvementPoints) ?? [],
             skillProficiencies: try container.decodeIfPresent(Set<Skill>.self, forKey: .skillProficiencies) ?? [],
             experiencePoints: try container.decodeIfPresent(Int.self, forKey: .experiencePoints),
-            spellIDs: try container.decodeIfPresent(Set<String>.self, forKey: .spellIDs) ?? []
+            spellIDs: try container.decodeIfPresent(Set<String>.self, forKey: .spellIDs) ?? [],
+            hitPointMethod: try container.decodeIfPresent(HitPointMethod.self, forKey: .hitPointMethod) ?? .fixed,
+            hitPointRolls: try container.decodeIfPresent([Int].self, forKey: .hitPointRolls) ?? []
         )
     }
 
@@ -104,6 +115,20 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         let gained = (level + 1)...newLevel
         level = newLevel
         return gained
+    }
+
+    /// With rolled hit points, rolls the hit die for any level that doesn't have a roll yet.
+    /// Returns the new rolls, oldest level first.
+    @discardableResult
+    public mutating func rollMissingHitPoints(hitDie: Int, roller: DiceRoller = .random) -> [Int] {
+        guard hitPointMethod == .rolled else { return [] }
+        var added: [Int] = []
+        while hitPointRolls.count < level - 1 {
+            let roll = roller.roll(hitDie)
+            hitPointRolls.append(roll)
+            added.append(roll)
+        }
+        return added
     }
 
     /// Spends one Ability Score Improvement point. Abilities can't go above 20.
@@ -138,6 +163,7 @@ public enum CharacterError: Error, Equatable, Sendable {
     case noImprovementPoints
     case abilityAtMaximum
     case characterNotFound
+    case invalidHitPointRolls
 }
 
 /// The user's list of characters plus the rules for adding and removing them.

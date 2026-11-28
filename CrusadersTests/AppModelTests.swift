@@ -246,4 +246,16 @@ final class AppModelTests: XCTestCase {
         try model.spendImprovementPoint(on: .con, for: hero.id)
         XCTAssertEqual(model.sheet(for: hero.id)?.unspentImprovementPoints, 1)
     }
+
+    func testLevelUpRollsHitDiceForCharactersThatRoll() throws {
+        let model = AppModel(diceRoller: .sequence([7]))
+        var draft = CharacterDraft.starter()
+        draft.name = "Roller"
+        draft.selectHitPointMethod(.rolled)
+        let hero = try model.createCharacter(from: draft)
+        let summary = try XCTUnwrap(try model.addExperience(300, to: hero.id))
+        XCTAssertEqual(model.character(id: hero.id)?.hitPointRolls, [7])
+        XCTAssertEqual(summary.levels.first?.hitPointRoll, 7)
+        XCTAssertEqual(summary.levels.first?.hitPointIncrease, 9)
+    }
 }
