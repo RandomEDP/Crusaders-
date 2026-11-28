@@ -6,6 +6,12 @@ import CrusadersKit
 struct CharacterDetailsSections: View {
     @Environment(AppModel.self) private var model
     let character: PlayerCharacter
+    /// The campaign whose party chat gets ability rolls.
+    var campaignCode: String? = nil
+    /// Show the rest buttons even with no limited uses, so spell slots can come back.
+    var hasSpellSlots = false
+    var outcome: Binding<ActionOutcome?>? = nil
+    var actionError: Binding<String?>? = nil
     @State private var isEditing = false
 
     var body: some View {
@@ -28,11 +34,11 @@ struct CharacterDetailsSections: View {
             }
         }
 
-        if !character.resources.isEmpty {
+        if !character.resources.isEmpty || hasSpellSlots {
             ThemedSection {
                 ForEach(character.resources) { resource in
                     ResourceRow(resource: resource) {
-                        model.updateCharacter(character.id) { _ = $0.useResource(resource.id) }
+                        use(resource)
                     } restore: {
                         model.updateCharacter(character.id) { $0.restoreResource(resource.id) }
                     }
@@ -46,7 +52,11 @@ struct CharacterDetailsSections: View {
                 }
                 .buttonStyle(.borderless)
             } header: {
-                Text("Limited uses")
+                Text(character.resources.isEmpty ? "Rests" : "Limited uses")
+            } footer: {
+                Text(character.resources.isEmpty
+                     ? "A long rest brings back every spell slot."
+                     : "Tap − to use an ability. Its roll goes in the party chat. Rests bring uses and spell slots back.")
             }
         }
 
@@ -63,6 +73,19 @@ struct CharacterDetailsSections: View {
                 Label(character.lore.isEmpty ? "Write backstory and lore" : "All lore", systemImage: "book.closed")
             }
             .accessibilityIdentifier("sheet.lore")
+        }
+    }
+
+    /// Spends one use, rolls any dice in the ability's detail, and posts it in the party chat.
+    private func use(_ resource: CharacterResource) {
+        Task {
+            do {
+                let result = try await model.useAbility(resource.id, characterID: character.id, campaignCode: campaignCode)
+                if let outcome { outcome.wrappedValue = result }
+                if let actionError { actionError.wrappedValue = nil }
+            } catch {
+                if let actionError { actionError.wrappedValue = error.localizedDescription }
+            }
         }
     }
 

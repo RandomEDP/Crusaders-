@@ -16,6 +16,10 @@ struct CharacterSheetView: View {
     @State private var levelUp: LevelUpSummary?
     @State private var isPickingSpells = false
     @State private var errorMessage: String?
+    /// The last attack, spell or ability rolled, shown in an alert.
+    @State private var outcome: ActionOutcome?
+    /// Why an attack, spell or ability couldn't be used (no slots, no ammunition).
+    @State private var actionError: String?
 
     var body: some View {
         if let sheet = model.sheet(for: characterID, campaignCode: campaignCode ?? pickedCampaign) {
@@ -35,7 +39,8 @@ struct CharacterSheetView: View {
             }
             if let imported = sheet.character.importedSheet {
                 // Imported from D&D Beyond: show its printed numbers instead of working them out again.
-                ImportedSheetSections(sheet: imported)
+                ImportedSheetSections(sheet: imported, actions: .init(
+                    sheet: sheet, campaignCode: activeCampaignCode, outcome: $outcome, error: $actionError))
                 effectsSection(sheet)
                 equipmentSection(sheet)
             } else {
@@ -48,7 +53,8 @@ struct CharacterSheetView: View {
                 spellsSection(sheet)
                 featuresSection(sheet)
             }
-            CharacterDetailsSections(character: sheet.character)
+            CharacterDetailsSections(character: sheet.character, campaignCode: activeCampaignCode,
+                                     hasSpellSlots: sheet.hasSpellSlots, outcome: $outcome, actionError: $actionError)
             ThemedSection {
                 Text(RulesCatalog.srdAttribution)
                     .font(.serif(.footnote))
@@ -71,7 +77,11 @@ struct CharacterSheetView: View {
         .sheet(isPresented: $isPickingSpells) {
             SpellPickerView(characterID: characterID)
         }
+        .actionOutcomeAlert($outcome, error: $actionError)
     }
+
+    /// The campaign whose party chat gets rolls and whose inventory has the ammunition.
+    private var activeCampaignCode: String? { campaignCode ?? pickedCampaign }
 
     // MARK: Sections
 
@@ -247,25 +257,15 @@ struct CharacterSheetView: View {
                         .foregroundStyle(Theme.crimson)
                 }
             }
-            ForEach(sheet.attacks) { attack in
-                VStack(alignment: .leading, spacing: 2) {
-                    HStack {
-                        Text(attack.name).font(.serifBold(.headline))
-                        Spacer()
-                        Text(AbilityScores.signed(attack.attackBonus)).monospacedDigit()
-                    }
-                    Text(attack.damage).font(.serif(.subheadline))
-                    if !attack.notes.isEmpty {
-                        Text(attack.notes.joined(separator: " · "))
-                            .font(.serif(.caption))
-                            .foregroundStyle(Theme.inkSoft)
-                    }
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("sheet.attack.\(attack.id)")
+            ForEach(sheet.attackOptions) { attack in
+                AttackRollRow(attack: attack, characterID: characterID, campaignCode: activeCampaignCode,
+                              outcome: $outcome, errorMessage: $actionError)
             }
         } header: {
             Text("Equipment and attacks")
+        } footer: {
+            Text(playing.isEmpty ? "Tap an attack to roll it."
+                 : "Tap an attack to roll to hit and damage. The roll goes in the party chat.")
         }
     }
 
@@ -309,8 +309,8 @@ struct CharacterSheetView: View {
                 if let known = sheet.spellsKnownLimit {
                     LabeledContent("Spells known", value: "\(sheet.knownLeveledSpellCount) of \(known)")
                 }
-                if sheet.highestSpellLevel > 0 {
-                    SpellSlotsRow(slots: sheet.spellSlots)
+                if sheet.hasSpellSlots {
+                    SpellSlotTracker(sheet: sheet)
                 } else {
                     Text("No spell slots yet.").foregroundStyle(Theme.inkSoft)
                 }
@@ -323,17 +323,23 @@ struct CharacterSheetView: View {
                 Text("No spells yet.").foregroundStyle(Theme.inkSoft)
             }
             ForEach(known) { spell in
-                NavigationLink {
-                    SpellDetailView(spell: spell, characterID: characterID)
-                } label: {
-                    SpellRow(spell: spell)
+                HStack {
+                    NavigationLink {
+                        SpellDetailView(spell: spell, characterID: characterID)
+                    } label: {
+                        SpellRow(spell: spell)
+                    }
+                    castButton(spell, sheet: sheet)
                 }
             }
             ForEach(sheet.subclassSpells) { spell in
-                NavigationLink {
-                    SpellDetailView(spell: spell, characterID: nil)
-                } label: {
-                    SpellRow(spell: spell, note: sheet.characterClass?.subclass.name)
+                HStack {
+                    NavigationLink {
+                        SpellDetailView(spell: spell, characterID: nil)
+                    } label: {
+                        SpellRow(spell: spell, note: sheet.characterClass?.subclass.name)
+                    }
+                    castButton(spell, sheet: sheet)
                 }
             }
             Button {
@@ -344,7 +350,17 @@ struct CharacterSheetView: View {
             .accessibilityIdentifier("sheet.spells")
         } header: {
             Text("Spells")
+        } footer: {
+            Text("Cast spends a spell slot (cantrips are free) and rolls the spell's attack, damage or healing into the party chat.")
         }
+    }
+
+    private func castButton(_ spell: Spell, sheet: CharacterSheet) -> some View {
+        CastSpellButton(name: spell.name, spellLevel: spell.level, rollsToHit: SpellDice(spell: spell).attack != nil,
+                        sheet: sheet, cast: { slot, mode in
+                            try await model.castSpell(spell, slotLevel: slot, characterID: characterID,
+                                                      campaignCode: activeCampaignCode, mode: mode)
+                        }, outcome: $outcome, errorMessage: $actionError)
     }
 
     private func featuresSection(_ sheet: CharacterSheet) -> some View {
@@ -381,27 +397,5 @@ private struct ProficiencyRow: View {
             Text(AbilityScores.signed(value)).monospacedDigit()
         }
         .accessibilityElement(children: .combine)
-    }
-}
-
-/// Slots for each spell level the character has.
-struct SpellSlotsRow: View {
-    let slots: [Int]
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Spell slots").font(.serif(.subheadline))
-            HStack(spacing: 8) {
-                ForEach(Array(slots.enumerated()), id: \.offset) { index, count in
-                    if count > 0 {
-                        VStack(spacing: 0) {
-                            Text("\(count)").font(.serifBold(.headline))
-                            Text(Spell.ordinal(index + 1)).font(.serif(.caption2)).foregroundStyle(Theme.inkSoft)
-                        }
-                        .frame(minWidth: 32)
-                    }
-                }
-            }
-        }
     }
 }

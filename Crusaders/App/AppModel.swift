@@ -156,7 +156,7 @@ final class AppModel {
     }
 
     /// The campaign given (if this user plays the character there), or the first one they play it in.
-    private func playedCampaign(for characterID: PlayerCharacter.ID, code: String?) -> Campaign? {
+    func playedCampaign(for characterID: PlayerCharacter.ID, code: String?) -> Campaign? {
         let playing = campaigns(playing: characterID)
         return code.flatMap { code in playing.first { $0.joinCode == code } } ?? playing.first
     }
@@ -222,7 +222,9 @@ final class AppModel {
     /// The DM adds a Library item to a player's character inventory.
     @discardableResult
     func addItem(_ item: EquipmentItem, quantity: Int, to playerID: String, inCampaign code: String) async throws -> Campaign {
-        try await campaigns.addItem(itemID: item.id, name: item.name, quantity: quantity, to: playerID, inCampaign: code)
+        // Ammunition bundles go in as single pieces ("Arrows (20)" × 1 is 20 arrows), so each shot can use one.
+        try await campaigns.addItem(itemID: item.id, name: item.inventoryName, quantity: item.inventoryQuantity(for: quantity),
+                                    to: playerID, inCampaign: code)
     }
 
     // MARK: Equipment (the player who owns the character, or the DM)
@@ -274,6 +276,111 @@ final class AppModel {
     @discardableResult
     func removeItem(_ itemID: String, from playerID: String, inCampaign code: String) async throws -> Campaign {
         try await campaigns.removeItem(itemID: itemID, from: playerID, inCampaign: code)
+    }
+}
+
+// MARK: - Rolling attacks, casting spells and using abilities
+
+/// What tapping an attack, spell or ability did, for the sheet to show.
+struct ActionOutcome: Identifiable, Equatable {
+    let id = UUID()
+    /// The roll, as posted in the party chat.
+    let text: String
+    /// The campaign whose party chat got the roll. Nil when the character isn't in a campaign.
+    let postedTo: String?
+    /// Set when the roll couldn't be posted (iCloud down); the slot, use or ammunition is still spent.
+    let problem: String?
+}
+
+extension AppModel {
+    /// Ammunition in the character's campaign inventory that a weapon can fire, ordinary ammunition first.
+    func ammunition(_ kind: AmmoKind, for characterID: PlayerCharacter.ID, campaignCode: String? = nil) -> [AmmoStack] {
+        guard let campaign = playedCampaign(for: characterID, code: campaignCode) else { return [] }
+        return AmmoStack.stacks(for: kind, in: campaign.inventory(of: campaigns.me.id), catalog: itemLibrary.catalog)
+    }
+
+    /// Rolls an attack and posts it in the campaign's party chat. Bows, crossbows, slings and blowguns use one
+    /// piece of ammunition from the inventory (`ammoItemID`, or the first that fits), and can't fire without it.
+    func rollAttack(_ attack: AttackOption, characterID: PlayerCharacter.ID, campaignCode: String? = nil,
+                    mode: RollMode = .normal, ammoItemID: String? = nil) async throws -> ActionOutcome {
+        guard let character = character(id: characterID) else { throw CharacterError.characterNotFound }
+        let campaign = playedCampaign(for: characterID, code: campaignCode)
+        var stack: AmmoStack?
+        if let kind = attack.ammunition {
+            guard let campaign else { throw ActionError.ammunitionNeedsCampaign }
+            let stacks = ammunition(kind, for: characterID, campaignCode: campaign.joinCode)
+            stack = stacks.first { $0.itemID == ammoItemID } ?? stacks.first
+            guard let stack else { throw ActionError.noAmmunition(kind) }
+            try await campaigns.removeItem(itemID: stack.itemID, quantity: 1, from: campaigns.me.id, inCampaign: campaign.joinCode)
+        }
+        let result = attack.roll(mode: mode, extraBonus: stack?.bonus ?? 0, using: diceRoller)
+        let text = result.chatText(characterName: character.name, ammoName: stack?.name,
+                                   ammoLeft: stack.map { $0.quantity - 1 })
+        return await post(text, campaign: campaign)
+    }
+
+    /// Casts a spell: spends a slot of `slotLevel` (cantrips are free), rolls its attack, damage or healing,
+    /// and posts it in the party chat. Throws, spending nothing, when no slot of that level is left.
+    func castSpell(_ spell: Spell, slotLevel: Int?, characterID: PlayerCharacter.ID, campaignCode: String? = nil,
+                   mode: RollMode = .normal) async throws -> ActionOutcome {
+        guard let sheet = sheet(for: characterID, campaignCode: campaignCode) else { throw CharacterError.characterNotFound }
+        let slot = spell.isCantrip ? nil : (slotLevel ?? spell.level)
+        return try await cast(sheet.cast(spell, slotLevel: slot), sheet: sheet, characterID: characterID,
+                              campaignCode: campaignCode, mode: mode)
+    }
+
+    /// Casts a spell printed on an imported sheet that has no SRD match.
+    func castSpell(imported spell: ImportedSheet.SpellEntry, slotLevel: Int?, characterID: PlayerCharacter.ID,
+                   campaignCode: String? = nil, mode: RollMode = .normal) async throws -> ActionOutcome {
+        guard let sheet = sheet(for: characterID, campaignCode: campaignCode) else { throw CharacterError.characterNotFound }
+        if let id = spell.srdID, let srd = rules.spells(ids: [id]).first {
+            return try await castSpell(srd, slotLevel: slotLevel, characterID: characterID, campaignCode: campaignCode, mode: mode)
+        }
+        return try await cast(sheet.cast(imported: spell, slotLevel: slotLevel), sheet: sheet, characterID: characterID,
+                              campaignCode: campaignCode, mode: mode)
+    }
+
+    private func cast(_ cast: SpellCast, sheet: CharacterSheet, characterID: PlayerCharacter.ID,
+                      campaignCode: String?, mode: RollMode) async throws -> ActionOutcome {
+        var slotsLeft: Int?
+        if let slot = cast.slotLevel {
+            let maximum = sheet.spellSlotMaximums[slot - 1]
+            try roster.update(id: characterID) { try $0.spendSpellSlot(level: slot, maximum: maximum) }
+            persist(characterID)
+            slotsLeft = self.sheet(for: characterID, campaignCode: campaignCode)?.spellSlotsLeft(atLevel: slot)
+        }
+        let text = cast.roll(mode: mode, using: diceRoller).chatText(characterName: sheet.character.name, slotsLeft: slotsLeft)
+        return await post(text, campaign: playedCampaign(for: characterID, code: campaignCode))
+    }
+
+    /// Gives back a spell slot (for a mis-tap).
+    func restoreSpellSlot(level: Int, for characterID: PlayerCharacter.ID) {
+        updateCharacter(characterID) { $0.restoreSpellSlot(level: level) }
+    }
+
+    /// Uses an ability with limited uses (Breath Weapon, Sorcery Points), rolls any dice in its detail,
+    /// and posts it in the party chat. Throws, spending nothing, when no uses are left.
+    func useAbility(_ resourceID: CharacterResource.ID, characterID: PlayerCharacter.ID,
+                    campaignCode: String? = nil) async throws -> ActionOutcome {
+        guard let character = character(id: characterID) else { throw CharacterError.characterNotFound }
+        let used = try roster.update(id: characterID) { try $0.spendResource(resourceID) }
+        persist(characterID)
+        let text = used.useText(characterName: character.name, remaining: used.remaining, roller: diceRoller)
+        return await post(text, campaign: playedCampaign(for: characterID, code: campaignCode))
+    }
+
+    /// Posts a roll in the party chat, when the character is in a campaign.
+    private func post(_ text: String, campaign: Campaign?) async -> ActionOutcome {
+        guard let code = campaign?.joinCode, let latest = campaigns.campaign(code: code) else {
+            return ActionOutcome(text: text, postedTo: nil, problem: nil)
+        }
+        do {
+            try await chat.send(text, in: .party, campaign: latest, as: campaigns.me)
+            return ActionOutcome(text: text, postedTo: latest.name, problem: nil)
+        } catch {
+            return ActionOutcome(text: text, postedTo: nil,
+                                 problem: "Couldn't post this in the party chat: \(error.localizedDescription)")
+        }
     }
 }
 

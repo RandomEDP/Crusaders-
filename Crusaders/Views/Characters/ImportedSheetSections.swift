@@ -4,7 +4,17 @@ import CrusadersKit
 /// Character sheet sections for a character imported from D&D Beyond. Shows the numbers exactly as
 /// D&D Beyond printed them, with its feats, species traits and items already applied.
 struct ImportedSheetSections: View {
+    /// What the sheet needs to roll attacks and cast spells. Nil on the import review screen, where nothing is tappable.
+    struct Actions {
+        let sheet: CharacterSheet
+        let campaignCode: String?
+        let outcome: Binding<ActionOutcome?>
+        let error: Binding<String?>
+    }
+
+    @Environment(AppModel.self) private var model
     let sheet: ImportedSheet
+    var actions: Actions? = nil
 
     var body: some View {
         Group {
@@ -13,7 +23,8 @@ struct ImportedSheetSections: View {
             combatSection
             savingThrowsSection
             skillsSection
-            attacksSection
+            // On the character sheet, attacks are rolled from "Equipment and attacks".
+            if actions == nil { attacksSection }
         }
         // Background, languages, proficiencies, feats, limited uses and lore are the character's own
         // editable fields (CharacterDetailsSections), filled in from the sheet when it was imported.
@@ -138,23 +149,46 @@ struct ImportedSheetSections: View {
                             Text(level == 0 ? "Cantrips" : "Level \(level)").font(.serifBold(.headline))
                             Spacer()
                             if level > 0 {
-                                Text("\(sheet.slots(atLevel: level)) slots").font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
+                                Text(slotText(level)).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
+                                    .accessibilityIdentifier("imported.slots.\(level)")
                             }
                         }
                         ForEach(sheet.spells(atLevel: level), id: \.name) { spell in
                             HStack {
-                                Text(spell.name)
-                                if spell.alwaysPrepared {
-                                    Text("always prepared").font(.serifItalic(.caption)).foregroundStyle(Theme.inkSoft)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(spell.name)
+                                    if spell.alwaysPrepared {
+                                        Text("always prepared").font(.serifItalic(.caption)).foregroundStyle(Theme.inkSoft)
+                                    }
                                 }
                                 Spacer()
                                 Text(spell.saveOrAttack ?? "").font(.serif(.caption))
+                                if let actions {
+                                    castButton(spell, actions: actions)
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    /// "3 of 4 slots left" on the character sheet; "4 slots" on the review screen.
+    private func slotText(_ level: Int) -> String {
+        guard let actions else { return "\(sheet.slots(atLevel: level)) slots" }
+        return "\(actions.sheet.spellSlotsLeft(atLevel: level)) of \(sheet.slots(atLevel: level)) slots left"
+    }
+
+    private func castButton(_ spell: ImportedSheet.SpellEntry, actions: Actions) -> some View {
+        let srd = spell.srdID.flatMap { model.rules.spells(ids: [$0]).first }
+        let rollsToHit = srd.map { SpellDice(spell: $0).attack != nil } ?? (spell.saveOrAttack?.contains("+") ?? false)
+        return CastSpellButton(name: spell.name, spellLevel: spell.level, rollsToHit: rollsToHit, sheet: actions.sheet,
+                               cast: { slot, mode in
+                                   try await model.castSpell(imported: spell, slotLevel: slot,
+                                                             characterID: actions.sheet.character.id,
+                                                             campaignCode: actions.campaignCode, mode: mode)
+                               }, outcome: actions.outcome, errorMessage: actions.error)
     }
 
     private var spellLevels: [Int] {

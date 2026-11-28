@@ -145,6 +145,26 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(element(labelContaining: "Fire Bolt").waitForExistence(timeout: 5))
     }
 
+    func testTappingAnAttackRollsIt() {
+        createCharacter(named: "Dara")
+        characterRow(named: "Dara").tap()
+        XCTAssertTrue(app.navigationBars["Dara"].waitForExistence(timeout: 5))
+
+        let attack = app.buttons["attack.roll.Unarmed strike"]
+        scrollUntilHittable(attack)
+        attack.tap()
+        let roll = app.buttons["Roll"]
+        XCTAssertTrue(roll.waitForExistence(timeout: 5))
+        roll.tap()
+
+        // Not in a campaign, so the roll is shown here instead of going to a party chat.
+        let alert = app.alerts["Rolled"]
+        XCTAssertTrue(alert.waitForExistence(timeout: 5))
+        XCTAssertTrue(alert.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Dara attacks with Unarmed strike"))
+            .firstMatch.exists)
+        alert.buttons["OK"].tap()
+    }
+
     func testPointBuyAndClassPreset() {
         app.buttons["home.characters"].tap()
         app.buttons["characters.add"].tap()

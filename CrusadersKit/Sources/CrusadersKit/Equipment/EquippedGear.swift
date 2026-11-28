@@ -77,4 +77,9 @@ public struct WeaponAttack: Hashable, Sendable, Identifiable {
     /// e.g. "1d8 + 3 slashing"
     public let damage: String
     public let notes: [String]
+    /// The damage as dice to roll, e.g. 1d8 + 3. Nil for weapons that do no damage.
+    public var damageDice: DamageDice? = nil
+    public var damageType: DamageType = .none
+    /// What the weapon fires, for bows, crossbows, slings and blowguns. Each attack uses one.
+    public var ammunition: AmmoKind? = nil
 }
