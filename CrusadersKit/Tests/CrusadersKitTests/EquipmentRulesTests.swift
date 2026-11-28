@@ -19,12 +19,18 @@ private func hero(_ classID: String?, race: String? = nil, subrace: String? = ni
 
 /// A sheet for a character holding `items`, after `setup` equips some of them.
 private func sheet(_ character: PlayerCharacter, items: [String: Int],
-                   _ setup: (inout Loadout, [InventoryEntry]) throws -> Void = { _, _ in }) rethrows -> CharacterSheet {
+                   _ setup: (inout Loadout, [InventoryEntry]) throws -> Void) rethrows -> CharacterSheet {
     let inventory = bag(items)
     var loadout = Loadout()
     try setup(&loadout, inventory)
     return CharacterSheet(character: character,
                           gear: EquippedGear(loadout: loadout, inventory: inventory, catalog: srdCatalog))
+}
+
+/// A sheet for a character carrying `items` with nothing equipped.
+private func sheet(_ character: PlayerCharacter, items: [String: Int]) -> CharacterSheet {
+    CharacterSheet(character: character,
+                   gear: EquippedGear(loadout: Loadout(), inventory: bag(items), catalog: srdCatalog))
 }
 
 final class LoadoutRulesTests: XCTestCase {
