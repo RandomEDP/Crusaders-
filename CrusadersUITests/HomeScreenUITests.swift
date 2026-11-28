@@ -83,7 +83,12 @@ final class HomeScreenUITests: XCTestCase {
         }
         addSpells.tap()
 
-        // Fighters can't cast, so the picker opens on All spells. Fire Bolt is near the top of the cantrips.
+        // Fighters can't cast, so the picker opens on All spells. Search so the row is on screen
+        // whatever the text size (the list only builds rows that are visible).
+        let search = app.searchFields.firstMatch
+        XCTAssertTrue(search.waitForExistence(timeout: 5))
+        search.tap()
+        search.typeText("Fire Bolt")
         let row = app.buttons["spells.row.fire-bolt"]
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
