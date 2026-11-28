@@ -270,6 +270,45 @@ public final class CampaignManager {
         return updated
     }
 
+    // MARK: Coins
+
+    /// The DM gives a character coins.
+    @discardableResult
+    public func giveCoins(_ amount: Int, of coin: Coin, to playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard amount > 0 else { throw CoinError.invalidAmount }
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .dungeonMaster else { throw CoinError.onlyDungeonMasterCanGive }
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        return try await record(CoinChange(playerID: playerID, deltas: [coin: amount], authorID: me.id,
+                                           note: "Received \(amount) \(coin.rawValue)"), code: code)
+    }
+
+    /// Pays an amount from a character's purse (the DM or that player), breaking bigger coins for change if needed.
+    @discardableResult
+    public func spend(_ cost: Cost, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard cost.amount > 0 else { throw CoinError.invalidAmount }
+        let campaign = try requireCampaign(code)
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        guard campaign.role(of: me.id) == .dungeonMaster || me.id == playerID else { throw CoinError.notYourPurse }
+        guard let deltas = campaign.purse(of: playerID).payment(for: cost) else { throw CoinError.notEnoughMoney }
+        return try await record(CoinChange(playerID: playerID, deltas: deltas, authorID: me.id,
+                                           note: "Paid \(cost.text)"), code: code)
+    }
+
+    private func record(_ change: CoinChange, code: String) async throws -> Campaign {
+        let updated: Campaign
+        do {
+            updated = try await directory.record(change, inCampaignWithCode: code)
+        } catch let error as CampaignError {
+            throw error
+        } catch {
+            throw CampaignError.directoryUnavailable
+        }
+        book.upsert(updated)
+        persist()
+        return updated
+    }
+
     // MARK: Combat
 
     /// The DM deals damage to a player's character. Temporary hit points go first.

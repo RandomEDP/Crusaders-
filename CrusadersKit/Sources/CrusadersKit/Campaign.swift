@@ -63,6 +63,8 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     public var loadoutChanges: [LoadoutChange]
     /// Damage, healing, effects and rounds, oldest first (see `combatState(of:)`).
     public var combatEvents: [CombatEvent]
+    /// Coins given, spent and exchanged, oldest first (see `purse(of:)`).
+    public var coinChanges: [CoinChange]
 
     public init(
         name: String,
@@ -71,7 +73,8 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
         players: [CampaignMember] = [],
         inventoryChanges: [InventoryChange] = [],
         loadoutChanges: [LoadoutChange] = [],
-        combatEvents: [CombatEvent] = []
+        combatEvents: [CombatEvent] = [],
+        coinChanges: [CoinChange] = []
     ) {
         self.name = name
         self.joinCode = joinCode
@@ -80,10 +83,11 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
         self.inventoryChanges = inventoryChanges
         self.loadoutChanges = loadoutChanges
         self.combatEvents = combatEvents
+        self.coinChanges = coinChanges
     }
 
     enum CodingKeys: String, CodingKey {
-        case name, joinCode, dungeonMaster, players, inventoryChanges, loadoutChanges, combatEvents
+        case name, joinCode, dungeonMaster, players, inventoryChanges, loadoutChanges, combatEvents, coinChanges
     }
 
     /// Campaigns saved before inventories existed still load.
@@ -96,7 +100,8 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
             players: try container.decodeIfPresent([CampaignMember].self, forKey: .players) ?? [],
             inventoryChanges: try container.decodeIfPresent([InventoryChange].self, forKey: .inventoryChanges) ?? [],
             loadoutChanges: try container.decodeIfPresent([LoadoutChange].self, forKey: .loadoutChanges) ?? [],
-            combatEvents: try container.decodeIfPresent([CombatEvent].self, forKey: .combatEvents) ?? []
+            combatEvents: try container.decodeIfPresent([CombatEvent].self, forKey: .combatEvents) ?? [],
+            coinChanges: try container.decodeIfPresent([CoinChange].self, forKey: .coinChanges) ?? []
         )
     }
 
@@ -154,6 +159,30 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     /// A player's worn and held items, checked against their inventory.
     public func equippedGear(of playerID: String, catalog: ItemCatalog) -> EquippedGear {
         EquippedGear(loadout: loadout(of: playerID), inventory: inventory(of: playerID), catalog: catalog)
+    }
+
+    // MARK: Coins
+
+    /// Adds a coin change to the log, once.
+    public mutating func apply(_ change: CoinChange) {
+        guard !coinChanges.contains(where: { $0.id == change.id }) else { return }
+        coinChanges.append(change)
+        coinChanges.sort { ($0.date, $0.id.uuidString) < ($1.date, $1.id.uuidString) }
+    }
+
+    /// The DM can give or take any coins. A player can spend or exchange their own coins, but never make money.
+    public func allows(_ change: CoinChange) -> Bool {
+        if change.authorID == dungeonMaster.id { return true }
+        return change.authorID == change.playerID && change.valueCopper <= 0
+    }
+
+    /// A player's coins. Changes that aren't allowed, or that would take more coins than there are, are ignored.
+    public func purse(of playerID: String) -> CoinPurse {
+        var purse = CoinPurse()
+        for change in coinChanges where change.playerID == playerID && allows(change) {
+            if let next = purse.adding(change.deltas) { purse = next }
+        }
+        return purse
     }
 
     // MARK: Combat

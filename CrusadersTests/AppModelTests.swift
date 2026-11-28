@@ -366,4 +366,13 @@ final class AppModelTests: XCTestCase {
         record["event"] = "nope" as CKRecordValue
         XCTAssertNil(CloudKitCampaignDirectory.combatEvent(from: record))
     }
+
+    func testCloudKitCoinRecordsRoundTrip() {
+        let change = CoinChange(playerID: "p1", deltas: [.gp: -1, .sp: 95], authorID: "p1",
+                                date: Date(timeIntervalSince1970: 4_000), note: "Paid 5 sp")
+        let record = CloudKitCampaignDirectory.coinRecord(change, code: "042917")
+        XCTAssertEqual(record.recordType, "CoinChange")
+        XCTAssertEqual(record["deltas"] as? String, #"{"gp":-1,"sp":95}"#)
+        XCTAssertEqual(CloudKitCampaignDirectory.coinChange(from: record), change)
+    }
 }

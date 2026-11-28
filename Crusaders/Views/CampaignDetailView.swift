@@ -18,6 +18,7 @@ struct CampaignDetailView: View {
     @State private var errorMessage: String?
     @State private var choosingBase: BaseChoice?
     @State private var combatAction: CombatAction?
+    @State private var coinAction: CoinAction?
 
     /// A magic item like "Armor, +1" waiting for the player to say which armour or weapon it is.
     struct BaseChoice: Identifiable {
@@ -74,6 +75,14 @@ struct CampaignDetailView: View {
                     case .damage: try await model.campaigns.dealDamage(amount, type: type, to: action.player.id, inCampaign: code)
                     case .heal: try await model.campaigns.heal(amount, for: action.player.id, inCampaign: code)
                     case .temporary: try await model.campaigns.giveTemporaryHitPoints(amount, to: action.player.id, inCampaign: code)
+                    }
+                }
+            }
+            .sheet(item: $coinAction) { action in
+                CoinAmountSheet(action: action) { amount, coin in
+                    switch action.kind {
+                    case .give: try await model.campaigns.giveCoins(amount, of: coin, to: action.player.id, inCampaign: code)
+                    case .spend: try await model.campaigns.spend(Cost(amount: amount, coin: coin), for: action.player.id, inCampaign: code)
                     }
                 }
             }
@@ -358,6 +367,31 @@ struct CampaignDetailView: View {
                         }
                     }
                     .accessibilityIdentifier("inventory.sheet")
+                }
+                let purse = campaign.purse(of: player.id)
+                VStack(alignment: .leading, spacing: 6) {
+                    Label(purse.text, systemImage: "dollarsign.circle")
+                        .accessibilityIdentifier("inventory.purse.\(player.id)")
+                    HStack {
+                        if isDM {
+                            Button {
+                                coinAction = CoinAction(kind: .give, player: player)
+                            } label: {
+                                Label("Give coins", systemImage: "plus.circle").font(.serif(.subheadline))
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("inventory.giveCoins.\(player.id)")
+                        }
+                        if canEquip && !purse.isEmpty {
+                            Button {
+                                coinAction = CoinAction(kind: .spend, player: player)
+                            } label: {
+                                Label("Spend", systemImage: "minus.circle").font(.serif(.subheadline))
+                            }
+                            .buttonStyle(.bordered)
+                            .accessibilityIdentifier("inventory.spendCoins.\(player.id)")
+                        }
+                    }
                 }
                 if entries.isEmpty {
                     Text("No items yet.").foregroundStyle(Theme.inkSoft)
@@ -756,6 +790,76 @@ struct CombatAmountSheet: View {
         }
         do {
             try await apply(amount, damageType)
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+}
+
+/// Coins the DM gives, or a character pays.
+struct CoinAction: Identifiable {
+    enum Kind: String {
+        case give, spend
+    }
+
+    let kind: Kind
+    let player: CampaignMember
+    var id: String { "\(kind.rawValue)-\(player.id)" }
+}
+
+/// Asks how many coins of which type to give or pay. Paying breaks bigger coins and gives change if needed.
+struct CoinAmountSheet: View {
+    let action: CoinAction
+    let apply: (Int, Coin) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var amountText = ""
+    @State private var coin: Coin = .gp
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ThemedSection {
+                    TextField("Amount", text: $amountText)
+                        .keyboardType(.numberPad)
+                        .accessibilityIdentifier("coins.amount")
+                    Picker("Coin", selection: $coin) {
+                        ForEach(Coin.allCases) { Text($0.title).tag($0) }
+                    }
+                    .accessibilityIdentifier("coins.coin")
+                    if let errorMessage {
+                        Text(errorMessage).foregroundStyle(Theme.crimson)
+                    }
+                } footer: {
+                    Text(action.kind == .spend
+                         ? "If you don't have the right coins, a bigger coin is broken and you get change. 1 gp = 100 sp, 1 sp = 100 cp."
+                         : "1 gp = 100 sp, 1 sp = 100 cp.")
+                }
+            }
+            .navigationTitle(action.kind == .give ? "Give coins" : "Spend coins")
+            .parchmentScreen()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(action.kind == .give ? "Give" : "Pay") { Task { await submit() } }
+                        .accessibilityIdentifier("coins.apply")
+                }
+            }
+        }
+    }
+
+    private func submit() async {
+        guard let amount = Int(amountText.trimmingCharacters(in: .whitespaces)), amount > 0 else {
+            errorMessage = CoinError.invalidAmount.localizedDescription
+            return
+        }
+        do {
+            try await apply(amount, coin)
             dismiss()
         } catch {
             errorMessage = error.localizedDescription

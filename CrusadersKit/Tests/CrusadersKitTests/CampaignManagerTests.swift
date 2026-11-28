@@ -12,6 +12,7 @@ private struct OfflineDirectory: CampaignDirectory {
     func record(_ change: InventoryChange, inCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
     func record(_ change: LoadoutChange, inCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
     func record(_ events: [CombatEvent], inCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
+    func record(_ change: CoinChange, inCampaignWithCode code: String) async throws -> Campaign { throw Offline() }
 }
 
 /// Hands out codes from a list, so tests can force clashes.

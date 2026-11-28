@@ -165,7 +165,9 @@ final class ItemCatalogTests: XCTestCase {
     }
 
     func testCoinValues() {
-        XCTAssertEqual(Cost(amount: 3, coin: .gp).inCopper, 300)
-        XCTAssertEqual(Cost(amount: 2, coin: .pp).inCopper, 2000)
+        XCTAssertEqual(Cost(amount: 3, coin: .gp).inCopper, 30_000, "house rule: 1 gp = 100 sp = 10,000 cp")
+        XCTAssertEqual(Cost(amount: 2, coin: .pp).inCopper, 200_000)
+        XCTAssertEqual(Coin.sp.copperValue, 100)
+        XCTAssertEqual(Coin.gp.copperValue / Coin.sp.copperValue, 100)
     }
 }
