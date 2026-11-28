@@ -596,7 +596,7 @@ enum SheetText {
             let trimmed = line.trimmed
             guard !trimmed.isEmpty else { return nil }
             guard let range = trimmed.range(of: " - ") ?? trimmed.range(of: ": ") else { return nil }
-            let kind = trimmed[..<range.lowerBound].trimmed.lowercased()
+            let kind = String(trimmed[..<range.lowerBound]).trimmed.lowercased()
             return (kind, list(String(trimmed[range.upperBound...])))
         }
     }
