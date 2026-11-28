@@ -106,6 +106,44 @@ final class AppModelTests: XCTestCase {
         XCTAssertEqual(CloudKitCampaignDirectory.player(from: CloudKitCampaignDirectory.playerRecord(player, code: "042917")), player)
     }
 
+    func testAppModelChatStaysOnThePhoneWhileICloudIsOff() async throws {
+        let model = makeModel()
+        let campaign = try await model.createCampaign(name: "Night Below", yourName: "Dana")
+        try await model.chat.send("Welcome!", in: .party, campaign: campaign, as: model.campaigns.me)
+        await model.chat.load(.party, campaign: campaign, viewer: model.campaigns.me)
+        XCTAssertEqual(model.chat.messages(in: .party, campaign: campaign, viewer: model.campaigns.me).map(\.text), ["Welcome!"])
+    }
+
+    func testCloudKitChatRecordsRoundTrip() {
+        let party = ChatMessage(channel: .party, senderID: "p1", senderName: "Sam", text: "Hello",
+                                sentAt: Date(timeIntervalSince1970: 1_000))
+        let partyRecord = CloudKitChatService.record(for: party, code: "042917", zoneID: nil)
+        XCTAssertEqual(partyRecord.recordType, "ChatMessage")
+        XCTAssertEqual(partyRecord.recordID.recordName, "chat-\(party.id.uuidString)")
+        XCTAssertEqual(partyRecord.recordID.zoneID, CKRecordZone.default().zoneID)
+        XCTAssertEqual(partyRecord["joinCode"] as? String, "042917")
+        XCTAssertEqual(CloudKitChatService.message(from: partyRecord), party)
+
+        // Private chats never go to the public database's default zone: they live in the DM's shared zone.
+        let zoneID = CKRecordZone.ID(zoneName: CloudKitChatService.zoneName(code: "042917", playerID: "p1"),
+                                     ownerName: CKCurrentUserDefaultName)
+        XCTAssertEqual(zoneID.zoneName, "whisper-042917-p1")
+        let whisper = ChatMessage(channel: .whisper(playerID: "p1"), senderID: "dm", senderName: "Dana",
+                                  text: "You hear a voice in your head", isNarration: true,
+                                  sentAt: Date(timeIntervalSince1970: 2_000))
+        let whisperRecord = CloudKitChatService.record(for: whisper, code: "042917", zoneID: zoneID)
+        XCTAssertEqual(whisperRecord.recordType, "WhisperMessage")
+        XCTAssertEqual(whisperRecord.recordID.zoneID, zoneID)
+        XCTAssertEqual(CloudKitChatService.message(from: whisperRecord), whisper)
+
+        let url = URL(string: "https://www.icloud.com/share/abc")!
+        let invite = CloudKitChatService.inviteRecord(code: "042917", playerID: "p1", shareURL: url)
+        XCTAssertEqual(invite.recordType, "WhisperInvite")
+        XCTAssertEqual(invite.recordID.recordName, "whisper-invite-042917-p1")
+        XCTAssertEqual(CloudKitChatService.shareURL(from: invite), url)
+        XCTAssertNil(CloudKitChatService.message(from: CKRecord(recordType: "ChatMessage")))
+    }
+
     func testCloudKitCampaignRecordsRoundTrip() {
         let campaign = Campaign(name: "Night Below", joinCode: "042917",
                                 dungeonMaster: CampaignMember(id: "dm", name: "Dana"))

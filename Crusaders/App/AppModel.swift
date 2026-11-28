@@ -15,6 +15,8 @@ final class AppModel {
     let characterStorageMode: CharacterPersistence.Mode
     private let characterStore: CharacterStore?
     let campaigns: CampaignManager
+    /// Party and private chats in campaigns. Shared through CloudKit when campaigns are (see `CloudKitChatService`).
+    let chat: CampaignChat
     let libraryCategories: [LibraryCategory]
     let itemLibrary: ItemLibrary
     let rules: RulesCatalog
@@ -22,6 +24,7 @@ final class AppModel {
     init(
         roster: CharacterRoster = CharacterRoster(),
         campaigns: CampaignManager? = nil,
+        chat: CampaignChat? = nil,
         library: LibraryCatalog = PlaceholderLibraryCatalog(),
         rules: RulesCatalog = .srd,
         itemLibrary: ItemLibrary? = nil,
@@ -29,7 +32,9 @@ final class AppModel {
         characterStorageMode: CharacterPersistence.Mode = .memory(reason: nil)
     ) {
         self.roster = roster
-        self.campaigns = campaigns ?? CampaignManager.makeDefault()
+        let campaigns = campaigns ?? CampaignManager.makeDefault()
+        self.campaigns = campaigns
+        self.chat = chat ?? CampaignChat.makeDefault(sharedThroughCloudKit: campaigns.isShared)
         self.characterStore = characterStore
         self.characterStorageMode = characterStorageMode
         self.libraryCategories = library.categories()

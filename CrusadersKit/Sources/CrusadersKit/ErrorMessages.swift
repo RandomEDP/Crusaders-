@@ -40,3 +40,16 @@ extension CampaignError: LocalizedError {
         }
     }
 }
+
+extension ChatError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .emptyMessage: return "Write a message first."
+        case .messageTooLong: return "That message is too long. Keep it under \(CampaignChat.maxLength) characters."
+        case .notAllowed: return "Only the Dungeon Master and that player can read this private chat."
+        case .onlyDungeonMasterCanNarrate: return "Only the Dungeon Master can narrate."
+        case .privateChatNotReady: return "Your private chat opens once the Dungeon Master opens it on their phone. Pull down to check again."
+        case .unavailable: return "Couldn't reach iCloud. Check you're online and signed in to iCloud, then try again."
+        }
+    }
+}

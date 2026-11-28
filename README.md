@@ -57,7 +57,7 @@ Campaigns > + > **Create campaign** asks for a campaign name and your name, then
 
 **Joining with a character.** Join campaign lists the characters saved on the phone; the player picks one (create one in Characters first). The DM sees each player's character on the Party tab.
 
-**Inventory.** Each campaign has a Party tab and an Inventory tab. On Inventory, the DM sees every player's character and can **add** Library items (with a quantity). Players see their own character's items. Both the DM and that player can **remove** items with the − button. Every add or remove is saved as its own `InventoryChange`, and the inventory is worked out from them, so a player never edits the DM's records. Changes the rules don't allow (a player adding, or removing from someone else) are ignored. In Debug, the launch argument `-dmTestCampaign` starts you as DM of "Test Table" (code `654321`) with one player, for UI tests.
+**Inventory.** Each campaign has Party, Inventory and Chat tabs (see Campaign chat). On Inventory, the DM sees every player's character and can **add** Library items (with a quantity). Players see their own character's items. Both the DM and that player can **remove** items with the − button. Every add or remove is saved as its own `InventoryChange`, and the inventory is worked out from them, so a player never edits the DM's records. Changes the rules don't allow (a player adding, or removing from someone else) are ignored. In Debug, the launch argument `-dmTestCampaign` starts you as DM of "Test Table" (code `654321`) with one player, for UI tests.
 
 Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
 
@@ -72,6 +72,36 @@ In the CloudKit Dashboard, public database, after the container from the Library
 3. Create record type `InventoryChange` with fields `joinCode` (String, **queryable**), `playerID`, `itemID`, `itemName`, `authorID` (String), `delta` (Int64), `changedAt` (Date/Time).
 4. Security for all three: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
 5. Deploy the schema to Production.
+
+## Campaign chat
+
+Each campaign has a **Chat** tab with:
+
+- **Party chat**: everyone in the campaign (the DM and every player) can read and write.
+- **Private chats**: one per player, between the DM and that player only. The DM sees a private chat for each player; a player sees only their own. Other players can't see it exists, let alone read it.
+- **Narrate** (DM only): sends a line as the story, in italics with no name, for example a private "You hear a voice in your head call out your name."
+
+Open chats check for new messages every 10 seconds, and you can pull down to refresh. The rules (who can read and write each chat, and that only the DM narrates) are in `CrusadersKit/Sources/CrusadersKit/CampaignChat.swift` and are unit tested. The app also drops any message that breaks them, even if a server returned it.
+
+**While iCloud is off** chats stay on the phone (and reset when the app closes), like campaigns. The sample campaign has a welcome message.
+
+**With iCloud on** (`CloudKitChatService`):
+
+- Party messages are `ChatMessage` records in the public database, like the rest of the campaign.
+- Private chats are **not** in the public database. Each one is a record zone in the **DM's private iCloud database**, shared with that single player through a CloudKit share with no public access. iCloud only lets the DM and that player read or write it, so even someone who got hold of the share link can't open it. The DM's phone sets up a private chat the first time the DM opens the Chat tab; until then the player sees "Your private chat opens once the Dungeon Master opens it."
+- The player's iCloud identity comes from iCloud's own record of who created their `CampaignPlayer` record, and the player's phone checks the invite was written by the campaign's DM, so nobody can pose as someone else.
+
+### iCloud setup for chat (once, by the Apple account owner)
+
+In the CloudKit Dashboard, after the campaign setup above:
+
+1. Public database: create record type `ChatMessage` with fields `joinCode` (String, **queryable**), `channel`, `senderID`, `senderName`, `text` (all String), `narration` (Int64), `sentAt` (Date/Time).
+2. Public database: create record type `WhisperInvite` with fields `joinCode`, `playerID`, `shareURL` (all String).
+3. Security for both: World can read, Authenticated can create, only the creator can write (same as the campaign types).
+4. Private chats use `WhisperMessage` records in the DM's private database (same fields as `ChatMessage`). This type is created automatically the first time a DM sends a private message from a Debug build with `-useCloudKit` on a device signed in to iCloud (Development environment). No security settings are needed: the share decides who can see it.
+5. Deploy the schema to Production.
+
+`Info.plist` has `CKSharingSupported` set, which CloudKit sharing needs.
 
 ## Saving characters
 
