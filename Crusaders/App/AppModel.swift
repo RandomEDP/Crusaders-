@@ -107,6 +107,12 @@ final class AppModel {
         roster.character(id: id)
     }
 
+    /// Changes a character (details, lore, limited uses) and saves it.
+    func updateCharacter(_ id: PlayerCharacter.ID, _ change: (inout PlayerCharacter) -> Void) {
+        guard (try? roster.update(id: id, { change(&$0) })) != nil else { return }
+        persist(id)
+    }
+
     // MARK: Import from D&D Beyond
 
     /// Reads a character sheet PDF (picked in Files, or shared to the app) and opens the review screen.

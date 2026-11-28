@@ -65,6 +65,37 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(app.navigationBars["Characters"].waitForExistence(timeout: 5))
     }
 
+    func testEditingLanguagesAndFeatsAndOpeningLore() {
+        createCharacter(named: "Dara")
+        characterRow(named: "Dara").tap()
+        XCTAssertTrue(app.navigationBars["Dara"].waitForExistence(timeout: 5))
+
+        let edit = app.buttons["sheet.editDetails"]
+        for _ in 0..<20 where !(edit.exists && edit.isHittable) {
+            app.swipeUp()
+        }
+        edit.tap()
+        let languages = app.textFields["details.languages"]
+        XCTAssertTrue(languages.waitForExistence(timeout: 5))
+        languages.tap()
+        languages.typeText("Common, Elvish")
+        let feats = app.textFields["details.feats"]
+        feats.tap()
+        feats.typeText("Alert")
+        app.buttons["details.save"].tap()
+
+        XCTAssertTrue(element(labelContaining: "Common, Elvish").waitForExistence(timeout: 5))
+        XCTAssertTrue(element(labelContaining: "Alert").exists)
+
+        let lore = app.buttons["sheet.lore"]
+        for _ in 0..<10 where !(lore.exists && lore.isHittable) {
+            app.swipeUp()
+        }
+        lore.tap()
+        XCTAssertTrue(app.navigationBars["Lore"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.textFields["lore.Religion"].exists || app.textViews["lore.Religion"].exists)
+    }
+
     func testAddingExperienceShowsLevelUpUnlocks() {
         createCharacter(named: "Bram")
         characterRow(named: "Bram").tap()

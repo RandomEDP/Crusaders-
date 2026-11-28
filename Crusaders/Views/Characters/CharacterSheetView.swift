@@ -48,6 +48,7 @@ struct CharacterSheetView: View {
                 spellsSection(sheet)
                 featuresSection(sheet)
             }
+            CharacterDetailsSections(character: sheet.character)
             ThemedSection {
                 Text(RulesCatalog.srdAttribution)
                     .font(.serif(.footnote))

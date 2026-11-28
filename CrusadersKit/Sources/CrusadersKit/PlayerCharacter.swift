@@ -30,6 +30,19 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
     public var hitPointMethod: HitPointMethod
     /// Hit die rolls for levels 2, 3, 4… when `hitPointMethod` is `.rolled`. Level 1 always takes the full die.
     public var hitPointRolls: [Int]
+    /// e.g. "Criminal"
+    public var background: String
+    /// e.g. "Chaotic Evil"
+    public var alignment: String
+    public var languages: [String]
+    public var feats: [String]
+    public var armorProficiencies: [String]
+    public var weaponProficiencies: [String]
+    public var toolProficiencies: [String]
+    /// Limited uses, such as Sorcery Points or a Breath Weapon.
+    public var resources: [CharacterResource]
+    /// Backstory and world-building.
+    public var lore: CharacterLore
     /// The sheet as printed by another app (D&D Beyond), for imported characters. Nil for characters made here.
     public var importedSheet: ImportedSheet?
 
@@ -50,6 +63,15 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         spellIDs: Set<String> = [],
         hitPointMethod: HitPointMethod = .fixed,
         hitPointRolls: [Int] = [],
+        background: String = "",
+        alignment: String = "",
+        languages: [String] = [],
+        feats: [String] = [],
+        armorProficiencies: [String] = [],
+        weaponProficiencies: [String] = [],
+        toolProficiencies: [String] = [],
+        resources: [CharacterResource] = [],
+        lore: CharacterLore = CharacterLore(),
         importedSheet: ImportedSheet? = nil
     ) {
         self.id = id
@@ -68,6 +90,15 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         self.spellIDs = spellIDs
         self.hitPointMethod = hitPointMethod
         self.hitPointRolls = hitPointRolls
+        self.background = background
+        self.alignment = alignment
+        self.languages = languages
+        self.feats = feats
+        self.armorProficiencies = armorProficiencies
+        self.weaponProficiencies = weaponProficiencies
+        self.toolProficiencies = toolProficiencies
+        self.resources = resources
+        self.lore = lore
         self.importedSheet = importedSheet
     }
 
@@ -76,6 +107,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         case raceID, subraceID, classID, baseAbilityScores, racialBonusChoices
         case improvementPoints, skillProficiencies, experiencePoints, spellIDs
         case hitPointMethod, hitPointRolls, importedSheet
+        case background, alignment, languages, feats, armorProficiencies, weaponProficiencies, toolProficiencies
+        case resources, lore
     }
 
     /// Reads saved characters. Anything missing gets a default, so characters saved by
@@ -100,6 +133,15 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
             spellIDs: try container.decodeIfPresent(Set<String>.self, forKey: .spellIDs) ?? [],
             hitPointMethod: try container.decodeIfPresent(HitPointMethod.self, forKey: .hitPointMethod) ?? .fixed,
             hitPointRolls: try container.decodeIfPresent([Int].self, forKey: .hitPointRolls) ?? [],
+            background: try container.decodeIfPresent(String.self, forKey: .background) ?? "",
+            alignment: try container.decodeIfPresent(String.self, forKey: .alignment) ?? "",
+            languages: try container.decodeIfPresent([String].self, forKey: .languages) ?? [],
+            feats: try container.decodeIfPresent([String].self, forKey: .feats) ?? [],
+            armorProficiencies: try container.decodeIfPresent([String].self, forKey: .armorProficiencies) ?? [],
+            weaponProficiencies: try container.decodeIfPresent([String].self, forKey: .weaponProficiencies) ?? [],
+            toolProficiencies: try container.decodeIfPresent([String].self, forKey: .toolProficiencies) ?? [],
+            resources: try container.decodeIfPresent([CharacterResource].self, forKey: .resources) ?? [],
+            lore: (try? container.decodeIfPresent(CharacterLore.self, forKey: .lore)) ?? CharacterLore(),
             // A sheet that can't be read (saved by a newer version) never stops the character loading.
             importedSheet: (try? container.decodeIfPresent(ImportedSheet.self, forKey: .importedSheet)) ?? nil
         )

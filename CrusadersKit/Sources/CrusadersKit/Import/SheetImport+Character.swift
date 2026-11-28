@@ -21,6 +21,23 @@ extension SheetImport {
         let className = sheet.classes.count > 1
             ? sheet.classes.map(\.name).joined(separator: " / ")
             : (sheet.classes.first?.name ?? "")
+        var lore = CharacterLore(
+            backstory: sheet.backstory ?? "",
+            personalityTraits: sheet.personalityTraits ?? "",
+            ideals: sheet.ideals ?? "",
+            bonds: sheet.bonds ?? "",
+            flaws: sheet.flaws ?? ""
+        )
+        let details: [String: WritableKeyPath<CharacterLore, String>] = [
+            "Gender": \.gender, "Age": \.age, "Height": \.height, "Weight": \.weight, "Faith": \.religion,
+            "Skin": \.skin, "Eyes": \.eyes, "Hair": \.hair, "Appearance": \.appearance,
+            "Allies & Organizations": \.alliesAndOrganizations, "Additional notes": \.notes, "More notes": \.notes
+        ]
+        for detail in sheet.otherDetails {
+            guard let keyPath = details[detail.label] else { continue }
+            let existing = lore[keyPath: keyPath]
+            lore[keyPath: keyPath] = existing.isEmpty ? detail.text : existing + "\n\n" + detail.text
+        }
         return PlayerCharacter(
             id: id,
             name: name,
@@ -34,6 +51,17 @@ extension SheetImport {
             skillProficiencies: skills,
             experiencePoints: sheet.experiencePoints,
             spellIDs: spellIDs,
+            background: sheet.background ?? "",
+            alignment: sheet.alignment ?? "",
+            languages: sheet.languages,
+            feats: sheet.feats,
+            armorProficiencies: sheet.armorProficiencies,
+            weaponProficiencies: sheet.weaponProficiencies,
+            toolProficiencies: sheet.toolProficiencies,
+            resources: sheet.resources.map {
+                CharacterResource(name: $0.name, uses: $0.uses, recharge: $0.recharge, detail: $0.detailText)
+            },
+            lore: lore,
             importedSheet: sheet
         )
     }

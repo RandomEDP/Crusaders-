@@ -15,13 +15,13 @@ struct ImportedSheetSections: View {
             skillsSection
             attacksSection
         }
+        // Background, languages, proficiencies, feats, limited uses and lore are the character's own
+        // editable fields (CharacterDetailsSections), filled in from the sheet when it was imported.
         Group {
-            if !sheet.resources.isEmpty { resourcesSection }
             spellsSection
-            proficienciesSection
+            if !sheet.metamagic.isEmpty { metamagicSection }
             coinsAndEquipmentSection
             featuresSection
-            detailsSection
         }
     }
 
@@ -31,8 +31,6 @@ struct ImportedSheetSections: View {
                 [entry.name, "\(entry.level)", entry.subclass.map { "(\($0))" }].compactMap { $0 }.joined(separator: " ")
             }.joined(separator: " / "))
             optionalRow("Species", [sheet.species, sheet.ancestry.map { "\($0) ancestry" }].compactMap { $0 }.joined(separator: ", "))
-            optionalRow("Background", sheet.background)
-            optionalRow("Alignment", sheet.alignment)
             optionalRow("Size", sheet.size)
             optionalRow("Player", sheet.playerName)
         } header: {
@@ -121,19 +119,6 @@ struct ImportedSheetSections: View {
         }
     }
 
-    private var resourcesSection: some View {
-        ThemedSection("Limited uses") {
-            ForEach(sheet.resources, id: \.name) { resource in
-                VStack(alignment: .leading, spacing: 2) {
-                    LabeledContent(resource.name, value: "\(resource.uses) / \(resource.recharge)")
-                    if let detail = resource.detailText {
-                        Text(detail).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
-                    }
-                }
-            }
-        }
-    }
-
     @ViewBuilder
     private var spellsSection: some View {
         if !sheet.spells.isEmpty || !sheet.spellcasting.isEmpty {
@@ -176,14 +161,9 @@ struct ImportedSheetSections: View {
         Array(Set(sheet.spells.map(\.level) + sheet.spellSlots.map(\.level))).sorted()
     }
 
-    private var proficienciesSection: some View {
-        ThemedSection("Proficiencies") {
-            optionalRow("Languages", sheet.languages.joined(separator: ", "))
-            optionalRow("Armor", sheet.armorProficiencies.joined(separator: ", "))
-            optionalRow("Weapons", sheet.weaponProficiencies.joined(separator: ", "))
-            optionalRow("Tools", sheet.toolProficiencies.joined(separator: ", "))
-            optionalRow("Feats", sheet.feats.joined(separator: ", "))
-            optionalRow("Metamagic", sheet.metamagic.joined(separator: ", "))
+    private var metamagicSection: some View {
+        ThemedSection("Metamagic") {
+            ForEach(sheet.metamagic, id: \.self) { Text($0) }
         }
     }
 
@@ -219,36 +199,6 @@ struct ImportedSheetSections: View {
                 }
             }
         }
-    }
-
-    @ViewBuilder
-    private var detailsSection: some View {
-        let details = detailRows
-        if !details.isEmpty {
-            ThemedSection("Details") {
-                ForEach(details, id: \.0) { label, text in
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(label).font(.serifBold(.subheadline))
-                        Text(text).font(.serif(.footnote))
-                    }
-                }
-            }
-        }
-    }
-
-    private var detailRows: [(String, String)] {
-        let fixed: [(String, String?)] = [
-            ("Personality traits", sheet.personalityTraits), ("Ideals", sheet.ideals), ("Bonds", sheet.bonds),
-            ("Flaws", sheet.flaws), ("Backstory", sheet.backstory)
-        ]
-        var rows: [(String, String)] = []
-        for (label, text) in fixed {
-            if let text, !text.isEmpty { rows.append((label, text)) }
-        }
-        for detail in sheet.otherDetails {
-            rows.append((detail.label, detail.text))
-        }
-        return rows
     }
 
     // MARK: Rows

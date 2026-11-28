@@ -227,6 +227,17 @@ final class DDBImportFixtureTests: XCTestCase {
         XCTAssertEqual(character.spellIDs, ["acid-splash", "mage-hand", "minor-illusion", "ray-of-frost", "sleep",
                                             "charm-person", "magic-missile", "false-life", "command", "alter-self"])
         XCTAssertTrue(character.isImported)
+        // Play-vital details land in the character's own fields, editable like any other character's.
+        XCTAssertEqual(character.background, "Criminal")
+        XCTAssertEqual(character.alignment, "Chaotic Evil")
+        XCTAssertEqual(character.languages, ["Common", "Draconic", "Elvish"])
+        XCTAssertEqual(character.feats, ["Skilled", "Alert"])
+        XCTAssertEqual(character.weaponProficiencies, ["Simple Weapons"])
+        XCTAssertEqual(character.toolProficiencies, ["Thieves' Tools"])
+        XCTAssertEqual(Set(character.resources.map(\.name)), ["Sorcery Points", "Breath Weapon", "Innate Sorcery", "Draconic Flight"])
+        XCTAssertEqual(character.resources.first { $0.name == "Breath Weapon" }?.detail, "DC 12 Dex, 1d10 Acid")
+        XCTAssertEqual(character.resources.first { $0.name == "Sorcery Points" }?.remaining, 4)
+        XCTAssertTrue(character.lore.isEmpty, "The sample's details page is blank")
         // The printed sheet survives the trip through storage (CD_StoredCharacter's payload).
         let decoded = try CharacterCoding.decode(CharacterCoding.encode(character))
         XCTAssertEqual(decoded.importedSheet, character.importedSheet)

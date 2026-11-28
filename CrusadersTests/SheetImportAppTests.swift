@@ -54,6 +54,39 @@ final class SheetImportAppTests: XCTestCase {
         XCTAssertEqual(model.importProblem, PDFSheetError.unreadable.localizedDescription)
     }
 
+    func testDetailsLoreAndLimitedUsesAreSavedForAnyCharacter() throws {
+        let store = InMemoryCharacterStore()
+        let model = makeModel(store: store)
+        let character = try model.addCharacter(name: "Aria", race: "Elf", characterClass: "Wizard", level: 2)
+        let points = CharacterResource(name: "Arcane Recovery", uses: 1)
+        model.updateCharacter(character.id) {
+            $0.languages = ["Common", "Elvish"]
+            $0.feats = ["Alert"]
+            $0.resources = [points]
+            $0.lore.religion = "Corellon"
+            $0.lore.bodyShape = "Slight and tall"
+        }
+        model.updateCharacter(character.id) { _ = $0.useResource(points.id) }
+
+        let saved = try XCTUnwrap(store.characters.first)
+        XCTAssertEqual(saved.languages, ["Common", "Elvish"])
+        XCTAssertEqual(saved.feats, ["Alert"])
+        XCTAssertEqual(saved.resources.first?.remaining, 0)
+        XCTAssertEqual(saved.lore.religion, "Corellon")
+        XCTAssertEqual(saved.lore.bodyShape, "Slight and tall")
+    }
+
+    func testImportedCharacterGetsEditableDetails() throws {
+        let store = InMemoryCharacterStore()
+        let model = makeModel(store: store)
+        model.openSheetPDF(at: try fixtureURL())
+        let character = try model.saveImport(try XCTUnwrap(model.pendingImport).result)
+        XCTAssertEqual(character.feats, ["Skilled", "Alert"])
+        XCTAssertEqual(character.languages, ["Common", "Draconic", "Elvish"])
+        XCTAssertEqual(character.background, "Criminal")
+        XCTAssertEqual(store.characters.first?.resources.count, 4)
+    }
+
     func testEmptyNameCantBeSaved() throws {
         let model = makeModel(store: InMemoryCharacterStore())
         let result = SheetImport(sheet: ImportedSheet(), name: "  ", issues: [])
