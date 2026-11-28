@@ -21,6 +21,9 @@ extension CharacterSheet {
         if let shield = gear.shield, let stats = shield.shield {
             parts.append((shield.name, stats.baseArmorClass + shield.armorClassBonus))
         }
+        for effect in combat.activeEffects where effect.modifiers.armorClassBonus != 0 {
+            parts.append((effect.name, effect.modifiers.armorClassBonus))
+        }
         return parts
     }
 
@@ -147,7 +150,7 @@ extension CharacterSheet {
                 name: "Unarmed strike", hand: nil,
                 attackBonus: strength + proficiencyBonus,
                 damage: Self.damageText(dice: "1", modifier: strength, type: .bludgeoning),
-                notes: armourDisadvantageNotes
+                notes: armourDisadvantageNotes + effectAttackNotes
             ))
         }
         return list
@@ -199,6 +202,7 @@ extension CharacterSheet {
             notes.append("Disadvantage: heavy weapon for a Small creature")
         }
         if !proficient { notes.append("Not proficient: no proficiency bonus") }
+        notes += effectAttackNotes
         notes += armourDisadvantageNotes
         if gear.item.requiresAttunement && !gear.isAttuned {
             notes.append("Not attuned: no magic")

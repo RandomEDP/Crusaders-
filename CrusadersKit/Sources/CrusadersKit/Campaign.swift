@@ -61,6 +61,10 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     /// Every change to what a character wears, holds and is attuned to, oldest first.
     /// The latest allowed one for each player counts (see `loadout(of:)`).
     public var loadoutChanges: [LoadoutChange]
+    /// Damage, healing, effects and rounds, oldest first (see `combatState(of:)`).
+    public var combatEvents: [CombatEvent]
+    /// Coins given, spent and exchanged, oldest first (see `purse(of:)`).
+    public var coinChanges: [CoinChange]
 
     public init(
         name: String,
@@ -68,7 +72,9 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
         dungeonMaster: CampaignMember,
         players: [CampaignMember] = [],
         inventoryChanges: [InventoryChange] = [],
-        loadoutChanges: [LoadoutChange] = []
+        loadoutChanges: [LoadoutChange] = [],
+        combatEvents: [CombatEvent] = [],
+        coinChanges: [CoinChange] = []
     ) {
         self.name = name
         self.joinCode = joinCode
@@ -76,10 +82,12 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
         self.players = players
         self.inventoryChanges = inventoryChanges
         self.loadoutChanges = loadoutChanges
+        self.combatEvents = combatEvents
+        self.coinChanges = coinChanges
     }
 
     enum CodingKeys: String, CodingKey {
-        case name, joinCode, dungeonMaster, players, inventoryChanges, loadoutChanges
+        case name, joinCode, dungeonMaster, players, inventoryChanges, loadoutChanges, combatEvents, coinChanges
     }
 
     /// Campaigns saved before inventories existed still load.
@@ -91,7 +99,9 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
             dungeonMaster: try container.decode(CampaignMember.self, forKey: .dungeonMaster),
             players: try container.decodeIfPresent([CampaignMember].self, forKey: .players) ?? [],
             inventoryChanges: try container.decodeIfPresent([InventoryChange].self, forKey: .inventoryChanges) ?? [],
-            loadoutChanges: try container.decodeIfPresent([LoadoutChange].self, forKey: .loadoutChanges) ?? []
+            loadoutChanges: try container.decodeIfPresent([LoadoutChange].self, forKey: .loadoutChanges) ?? [],
+            combatEvents: try container.decodeIfPresent([CombatEvent].self, forKey: .combatEvents) ?? [],
+            coinChanges: try container.decodeIfPresent([CoinChange].self, forKey: .coinChanges) ?? []
         )
     }
 
@@ -149,6 +159,62 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     /// A player's worn and held items, checked against their inventory.
     public func equippedGear(of playerID: String, catalog: ItemCatalog) -> EquippedGear {
         EquippedGear(loadout: loadout(of: playerID), inventory: inventory(of: playerID), catalog: catalog)
+    }
+
+    // MARK: Coins
+
+    /// Adds a coin change to the log, once.
+    public mutating func apply(_ change: CoinChange) {
+        guard !coinChanges.contains(where: { $0.id == change.id }) else { return }
+        coinChanges.append(change)
+        coinChanges.sort { ($0.date, $0.id.uuidString) < ($1.date, $1.id.uuidString) }
+    }
+
+    /// The DM can give or take any coins. A player can spend or exchange their own coins, but never make money.
+    public func allows(_ change: CoinChange) -> Bool {
+        if change.authorID == dungeonMaster.id { return true }
+        return change.authorID == change.playerID && change.valueCopper <= 0
+    }
+
+    /// A player's coins. Changes that aren't allowed, or that would take more coins than there are, are ignored.
+    public func purse(of playerID: String) -> CoinPurse {
+        var purse = CoinPurse()
+        for change in coinChanges where change.playerID == playerID && allows(change) {
+            if let next = purse.adding(change.deltas) { purse = next }
+        }
+        return purse
+    }
+
+    // MARK: Combat
+
+    /// Adds a combat event to the log, once.
+    public mutating func apply(_ event: CombatEvent) {
+        guard !combatEvents.contains(where: { $0.id == event.id }) else { return }
+        combatEvents.append(event)
+        combatEvents.sort { ($0.date, $0.id.uuidString) < ($1.date, $1.id.uuidString) }
+    }
+
+    /// The DM can do anything. A player can only affect their own character (drinking a potion,
+    /// ending an effect, reporting their stats), and can't move rounds on or take a long rest.
+    public func allows(_ event: CombatEvent) -> Bool {
+        if event.authorID == dungeonMaster.id { return true }
+        switch event.kind {
+        case .roundsAdvanced, .longRest: return false
+        default: return event.authorID == event.playerID && !event.playerID.isEmpty
+        }
+    }
+
+    /// The campaign's current combat round: every round the DM has moved on, added up.
+    public var round: Int {
+        combatEvents.reduce(0) { total, event in
+            guard allows(event), case .roundsAdvanced(let count) = event.kind else { return total }
+            return total + max(0, count)
+        }
+    }
+
+    /// A player's character's damage, healing and effects in this campaign.
+    public func combatState(of playerID: String) -> CombatState {
+        CombatState(round: round, events: combatEvents.filter { $0.playerID == playerID && allows($0) })
     }
 
     /// The player in this campaign playing a character, if any.

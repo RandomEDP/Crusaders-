@@ -17,6 +17,12 @@ public protocol CampaignDirectory: Sendable {
     /// Saves a change to what a character wears and holds, and returns the campaign with it applied.
     /// Throws `CampaignError.campaignNotFound` if the code isn't used.
     func record(_ change: LoadoutChange, inCampaignWithCode code: String) async throws -> Campaign
+    /// Saves combat events (damage, healing, effects, rounds) and returns the campaign with them applied.
+    /// Throws `CampaignError.campaignNotFound` if the code isn't used.
+    func record(_ events: [CombatEvent], inCampaignWithCode code: String) async throws -> Campaign
+    /// Saves a coin change and returns the campaign with it applied.
+    /// Throws `CampaignError.campaignNotFound` if the code isn't used.
+    func record(_ change: CoinChange, inCampaignWithCode code: String) async throws -> Campaign
 }
 
 /// Keeps campaigns in memory. Used by tests, previews, and the app while iCloud is switched off.
@@ -51,6 +57,20 @@ public actor InMemoryCampaignDirectory: CampaignDirectory {
     }
 
     public func record(_ change: LoadoutChange, inCampaignWithCode code: String) async throws -> Campaign {
+        guard var campaign = campaigns[code] else { throw CampaignError.campaignNotFound }
+        campaign.apply(change)
+        campaigns[code] = campaign
+        return campaign
+    }
+
+    public func record(_ events: [CombatEvent], inCampaignWithCode code: String) async throws -> Campaign {
+        guard var campaign = campaigns[code] else { throw CampaignError.campaignNotFound }
+        for event in events { campaign.apply(event) }
+        campaigns[code] = campaign
+        return campaign
+    }
+
+    public func record(_ change: CoinChange, inCampaignWithCode code: String) async throws -> Campaign {
         guard var campaign = campaigns[code] else { throw CampaignError.campaignNotFound }
         campaign.apply(change)
         campaigns[code] = campaign

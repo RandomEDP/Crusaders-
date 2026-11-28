@@ -34,6 +34,7 @@ struct CharacterSheetView: View {
             }
             abilitiesSection(sheet)
             combatSection(sheet)
+            effectsSection(sheet)
             equipmentSection(sheet)
             savingThrowsSection(sheet)
             skillsSection(sheet)
@@ -148,7 +149,12 @@ struct CharacterSheetView: View {
                     .font(.serif(.caption))
                     .foregroundStyle(Theme.inkSoft)
             }
-            LabeledContent("Hit points", value: "\(sheet.maxHitPoints)")
+            if model.campaigns(playing: characterID).isEmpty {
+                LabeledContent("Hit points", value: "\(sheet.maxHitPoints)")
+            } else {
+                LabeledContent("Hit points", value: sheet.health.text)
+                    .accessibilityIdentifier("sheet.hitPoints")
+            }
             LabeledContent("Hit dice", value: "\(sheet.level)d\(sheet.hitDie)")
             LabeledContent("Proficiency bonus", value: AbilityScores.signed(sheet.proficiencyBonus))
             LabeledContent("Initiative", value: AbilityScores.signed(sheet.initiative))
@@ -156,6 +162,9 @@ struct CharacterSheetView: View {
                            ? "\(sheet.speed) ft (−\(sheet.armourSpeedPenalty) armour)"
                            : "\(sheet.speed) ft")
                 .accessibilityIdentifier("sheet.speed")
+            ForEach(sheet.extraSpeeds, id: \.self) { speed in
+                Text(speed).font(.serif(.subheadline))
+            }
             LabeledContent("Passive Perception", value: "\(sheet.passivePerception)")
             ForEach(sheet.counters, id: \.name) { counter in
                 LabeledContent(counter.name, value: counter.value)
@@ -164,6 +173,34 @@ struct CharacterSheetView: View {
                 Text(proficiencies.joined(separator: ", "))
                     .font(.serif(.footnote))
                     .foregroundStyle(Theme.inkSoft)
+            }
+        }
+    }
+
+    /// Potions and other effects that are active, with the rounds they have left.
+    @ViewBuilder
+    private func effectsSection(_ sheet: CharacterSheet) -> some View {
+        if !sheet.activeEffects.isEmpty {
+            ThemedSection("Active effects") {
+                ForEach(sheet.activeEffects) { effect in
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack {
+                            Text(effect.name).font(.serifBold(.headline))
+                            Spacer()
+                            Text(ActiveEffect.timeLeftText(effect.roundsLeft(atRound: sheet.combat.round)))
+                                .font(.serif(.caption))
+                                .foregroundStyle(Theme.inkSoft)
+                        }
+                        ForEach(effect.summary, id: \.self) { note in
+                            Text(note).font(.serif(.caption))
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("sheet.effect")
+                }
+                ForEach(sheet.effectSaveNotes, id: \.self) { note in
+                    Text("Saving throws \(note)").font(.serif(.footnote)).foregroundStyle(Theme.inkSoft)
+                }
             }
         }
     }

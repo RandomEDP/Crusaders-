@@ -72,3 +72,25 @@ extension EquipError: LocalizedError {
         }
     }
 }
+
+extension CombatError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .invalidAmount: return "Enter an amount of 1 or more."
+        case .onlyDungeonMaster: return "Only the Dungeon Master can do that."
+        case .notYourCharacter: return "You can only do that to your own character."
+        case .cantUseItem: return "That item can't be used from here."
+        }
+    }
+}
+
+extension CoinError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .invalidAmount: return "Enter an amount of 1 or more."
+        case .notEnoughMoney: return "Not enough coins for that."
+        case .onlyDungeonMasterCanGive: return "Only the Dungeon Master can give coins."
+        case .notYourPurse: return "You can only spend your own coins."
+        }
+    }
+}

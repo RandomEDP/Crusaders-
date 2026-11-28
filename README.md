@@ -95,6 +95,12 @@ Campaigns > + > **Create campaign** asks for a campaign name and your name, then
 
 The changes show on the character sheet automatically (Armor Class, speed, attacks, saves, hit points), on the phone of the player who owns the character. Every change is saved as a `LoadoutChange`, and items the DM later removes simply drop off.
 
+**Combat: damage, healing and potions.** Each campaign has a **Combat** tab. It shows the campaign's **round** (1 round = 6 seconds; the DM taps **Next round** or **1 minute passes**), and each character's hit points, AC and active effects. The DM can **Damage** (any damage type), **Heal**, give **Temp HP**, or give a **Long rest** (full HP, effects end). Damage takes temporary HP first and HP never drops below 0; healing never goes over the maximum; temporary HP don't stack.
+
+On Inventory, potions have a **Use** (flask) button for the player or the DM. Using one removes it, rolls its dice and applies it (rules in `CrusadersKit/Sources/CrusadersKit/Combat`): healing potions (2d4 + 2 up to 10d4 + 20), Giant Strength (Strength 21 to 29 for an hour), Heroism (10 temp HP and Bless), Speed (Haste for 1 minute: +2 AC, double speed), Growth and Diminution (1d4 hours), Flying, Climbing, Invisibility, Resistance, Water Breathing, Poison (3d6 damage) and more. Effects count down in rounds (1 minute = 10 rounds, 1 hour = 600) and the character sheet uses them automatically: Strength, AC, speed, extra dice on attacks and saves, and current HP. The player's phone reports the character's max HP and AC so the DM sees "15 / 22 HP · AC 16". Every change is a `CombatEvent`.
+
+**Coins (house rule: 1 gp = 100 sp, 1 sp = 100 cp).** Each character's inventory has a coin purse. The DM taps **Give coins**; the player (or DM) taps **Spend** to pay an amount. If the character doesn't have the right coins, a bigger coin is broken and change comes back in gold, silver and copper. Electrum and platinum keep their 5e worth against gold (1 ep = ½ gp, 1 pp = 10 gp). Players can't give themselves money: changes that would are ignored. Every change is a `CoinChange`.
+
 Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
 
 **Sharing between phones needs iCloud.** While iCloud is switched off (see Library items), campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
@@ -107,8 +113,10 @@ In the CloudKit Dashboard, public database, after the container from the Library
 2. Create record type `CampaignPlayer` with fields `joinCode` (String, **queryable**), `memberID`, `name`, `characterID`, `characterName`, `characterSummary` (all String).
 3. Create record type `InventoryChange` with fields `joinCode` (String, **queryable**), `playerID`, `itemID`, `itemName`, `authorID` (String), `delta` (Int64), `changedAt` (Date/Time).
 4. Create record type `LoadoutChange` with fields `joinCode` (String, **queryable**), `playerID`, `authorID`, `loadout` (String), `changedAt` (Date/Time).
-5. Security for all four: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
-6. Deploy the schema to Production.
+5. Create record type `CombatEvent` with fields `joinCode` (String, **queryable**), `playerID`, `authorID`, `event` (String), `changedAt` (Date/Time).
+6. Create record type `CoinChange` with fields `joinCode` (String, **queryable**), `playerID`, `authorID`, `deltas`, `note` (String), `changedAt` (Date/Time).
+7. Security for all six: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
+8. Deploy the schema to Production.
 
 ## Campaign chat
 

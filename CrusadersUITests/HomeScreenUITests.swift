@@ -324,6 +324,37 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed)
     }
 
+    func testDMDealsDamageAndMovesRoundsOn() {
+        app.terminate()
+        app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]
+        app.launch()
+
+        app.buttons["home.campaigns"].tap()
+        let row = campaignRow(named: "Test Table")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        app.buttons["Combat"].tap()
+
+        let round = app.staticTexts["combat.round"]
+        XCTAssertTrue(round.waitForExistence(timeout: 5))
+        XCTAssertEqual(round.label, "Round 0")
+        app.buttons["combat.nextRound"].tap()
+        XCTAssertTrue(app.staticTexts["Round 1"].waitForExistence(timeout: 5))
+
+        let damage = app.buttons["combat.damage.ui-test-player"]
+        XCTAssertTrue(damage.waitForExistence(timeout: 5))
+        damage.tap()
+        let amount = app.textFields["combat.amount"]
+        XCTAssertTrue(amount.waitForExistence(timeout: 5))
+        amount.tap()
+        amount.typeText("7")
+        app.buttons["combat.apply"].tap()
+
+        let hp = app.staticTexts["combat.hp.ui-test-player"]
+        XCTAssertTrue(hp.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.staticTexts["7 damage taken"].waitForExistence(timeout: 5), hp.label)
+    }
+
     func testDMChatsWithThePartyAndWhispersToOnePlayer() {
         app.terminate()
         app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]
