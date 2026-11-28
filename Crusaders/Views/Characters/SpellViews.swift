@@ -29,6 +29,8 @@ struct SpellRow: View {
                     .foregroundStyle(Theme.inkSoft)
             }
         }
+        // The whole row is tappable, not just the letters (taps between the two lines used to miss).
+        .contentShape(Rectangle())
         .accessibilityElement(children: .combine)
         .accessibilityValue(isKnown == true ? "Known" : "")
     }
