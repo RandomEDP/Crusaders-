@@ -2,9 +2,14 @@ import SwiftUI
 import CrusadersKit
 
 /// The full character sheet: abilities, skills, features, spells and experience.
+/// Equipped items from a campaign inventory (AC, attacks, speed, saves) are applied automatically.
 struct CharacterSheetView: View {
     @Environment(AppModel.self) private var model
     let characterID: PlayerCharacter.ID
+    /// The campaign whose inventory to use. Nil: the one picked on the sheet, or the first campaign.
+    var campaignCode: String? = nil
+
+    @State private var pickedCampaign: String?
 
     @State private var isAddingExperience = false
     @State private var pendingLevelUp: LevelUpSummary?
@@ -13,7 +18,7 @@ struct CharacterSheetView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        if let sheet = model.sheet(for: characterID) {
+        if let sheet = model.sheet(for: characterID, campaignCode: campaignCode ?? pickedCampaign) {
             content(sheet)
         } else {
             ContentUnavailableView("Character not found", systemImage: "person.crop.circle.badge.questionmark")
@@ -29,6 +34,7 @@ struct CharacterSheetView: View {
             }
             abilitiesSection(sheet)
             combatSection(sheet)
+            equipmentSection(sheet)
             savingThrowsSection(sheet)
             skillsSection(sheet)
             spellsSection(sheet)
@@ -135,11 +141,21 @@ struct CharacterSheetView: View {
 
     private func combatSection(_ sheet: CharacterSheet) -> some View {
         ThemedSection("Combat") {
+            VStack(alignment: .leading, spacing: 2) {
+                LabeledContent("Armor Class", value: "\(sheet.armorClass)")
+                    .accessibilityIdentifier("sheet.armorClass")
+                Text(sheet.armorClassParts.map { "\($0.name) \($0.value)" }.joined(separator: " + "))
+                    .font(.serif(.caption))
+                    .foregroundStyle(Theme.inkSoft)
+            }
             LabeledContent("Hit points", value: "\(sheet.maxHitPoints)")
             LabeledContent("Hit dice", value: "\(sheet.level)d\(sheet.hitDie)")
             LabeledContent("Proficiency bonus", value: AbilityScores.signed(sheet.proficiencyBonus))
             LabeledContent("Initiative", value: AbilityScores.signed(sheet.initiative))
-            LabeledContent("Speed", value: "\(sheet.speed) ft")
+            LabeledContent("Speed", value: sheet.armourSpeedPenalty > 0
+                           ? "\(sheet.speed) ft (−\(sheet.armourSpeedPenalty) armour)"
+                           : "\(sheet.speed) ft")
+                .accessibilityIdentifier("sheet.speed")
             LabeledContent("Passive Perception", value: "\(sheet.passivePerception)")
             ForEach(sheet.counters, id: \.name) { counter in
                 LabeledContent(counter.name, value: counter.value)
@@ -149,6 +165,61 @@ struct CharacterSheetView: View {
                     .font(.serif(.footnote))
                     .foregroundStyle(Theme.inkSoft)
             }
+        }
+    }
+
+    /// Worn and held items, attacks and armour warnings, from the campaign inventory.
+    @ViewBuilder
+    private func equipmentSection(_ sheet: CharacterSheet) -> some View {
+        let playing = model.campaigns(playing: characterID)
+        ThemedSection {
+            if playing.isEmpty {
+                Text("Join a campaign with this character. Items you equip from its inventory change your AC, attacks and speed here.")
+                    .foregroundStyle(Theme.inkSoft)
+            } else {
+                if campaignCode == nil && playing.count > 1 {
+                    Picker("Campaign", selection: Binding(
+                        get: { pickedCampaign ?? playing.first?.joinCode ?? "" },
+                        set: { pickedCampaign = $0 }
+                    )) {
+                        ForEach(playing) { Text($0.name).tag($0.joinCode) }
+                    }
+                }
+                ForEach(sheet.gear.equipped) { entry in
+                    LabeledContent(entry.slot.title, value: entry.gear.name)
+                }
+                ForEach(sheet.gear.attuned, id: \.id) { gear in
+                    LabeledContent("Attuned", value: gear.name)
+                }
+                if sheet.gear.isEmpty {
+                    Text("Nothing equipped. Equip items on the campaign's Inventory tab.")
+                        .foregroundStyle(Theme.inkSoft)
+                }
+                ForEach(sheet.equipmentWarnings, id: \.self) { warning in
+                    Text(warning)
+                        .font(.serif(.footnote))
+                        .foregroundStyle(Theme.crimson)
+                }
+            }
+            ForEach(sheet.attacks) { attack in
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(attack.name).font(.serifBold(.headline))
+                        Spacer()
+                        Text(AbilityScores.signed(attack.attackBonus)).monospacedDigit()
+                    }
+                    Text(attack.damage).font(.serif(.subheadline))
+                    if !attack.notes.isEmpty {
+                        Text(attack.notes.joined(separator: " · "))
+                            .font(.serif(.caption))
+                            .foregroundStyle(Theme.inkSoft)
+                    }
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("sheet.attack.\(attack.id)")
+            }
+        } header: {
+            Text("Equipment and attacks")
         }
     }
 
@@ -170,7 +241,8 @@ struct CharacterSheetView: View {
                 ProficiencyRow(
                     title: "\(skill.name) (\(skill.ability.abbreviation))",
                     value: sheet.skillModifier(skill),
-                    isProficient: sheet.isProficient(skill)
+                    isProficient: sheet.isProficient(skill),
+                    note: skill == .stealth && sheet.hasStealthDisadvantage ? "Disadvantage (armour)" : nil
                 )
             }
         }
@@ -248,6 +320,7 @@ private struct ProficiencyRow: View {
     let title: String
     let value: Int
     let isProficient: Bool
+    var note: String? = nil
 
     var body: some View {
         HStack {
@@ -255,6 +328,9 @@ private struct ProficiencyRow: View {
                 .font(.serif(.caption2))
                 .foregroundStyle(isProficient ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.inkSoft))
             Text(title)
+            if let note {
+                Text(note).font(.serif(.caption)).foregroundStyle(Theme.crimson)
+            }
             Spacer()
             Text(AbilityScores.signed(value)).monospacedDigit()
         }

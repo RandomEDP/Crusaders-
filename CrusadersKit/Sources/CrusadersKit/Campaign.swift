@@ -58,23 +58,28 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
     /// Every item added to or removed from a character's inventory, oldest first.
     /// Inventories are worked out from this log (see `inventory(of:)`).
     public var inventoryChanges: [InventoryChange]
+    /// Every change to what a character wears, holds and is attuned to, oldest first.
+    /// The latest allowed one for each player counts (see `loadout(of:)`).
+    public var loadoutChanges: [LoadoutChange]
 
     public init(
         name: String,
         joinCode: String,
         dungeonMaster: CampaignMember,
         players: [CampaignMember] = [],
-        inventoryChanges: [InventoryChange] = []
+        inventoryChanges: [InventoryChange] = [],
+        loadoutChanges: [LoadoutChange] = []
     ) {
         self.name = name
         self.joinCode = joinCode
         self.dungeonMaster = dungeonMaster
         self.players = players
         self.inventoryChanges = inventoryChanges
+        self.loadoutChanges = loadoutChanges
     }
 
     enum CodingKeys: String, CodingKey {
-        case name, joinCode, dungeonMaster, players, inventoryChanges
+        case name, joinCode, dungeonMaster, players, inventoryChanges, loadoutChanges
     }
 
     /// Campaigns saved before inventories existed still load.
@@ -85,7 +90,8 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
             joinCode: try container.decode(String.self, forKey: .joinCode),
             dungeonMaster: try container.decode(CampaignMember.self, forKey: .dungeonMaster),
             players: try container.decodeIfPresent([CampaignMember].self, forKey: .players) ?? [],
-            inventoryChanges: try container.decodeIfPresent([InventoryChange].self, forKey: .inventoryChanges) ?? []
+            inventoryChanges: try container.decodeIfPresent([InventoryChange].self, forKey: .inventoryChanges) ?? [],
+            loadoutChanges: try container.decodeIfPresent([LoadoutChange].self, forKey: .loadoutChanges) ?? []
         )
     }
 
@@ -120,6 +126,34 @@ public struct Campaign: Identifiable, Hashable, Codable, Sendable {
             }
         }
         return entries.filter { $0.quantity > 0 }
+    }
+
+    /// Adds a loadout change to the log, once.
+    public mutating func apply(_ change: LoadoutChange) {
+        guard !loadoutChanges.contains(where: { $0.id == change.id }) else { return }
+        loadoutChanges.append(change)
+        loadoutChanges.sort { ($0.date, $0.id.uuidString) < ($1.date, $1.id.uuidString) }
+    }
+
+    /// The DM or the player who owns the character can change what it wears and holds.
+    public func allows(_ change: LoadoutChange) -> Bool {
+        change.authorID == dungeonMaster.id || change.authorID == change.playerID
+    }
+
+    /// What a player's character wears and holds, as last set. Check it against the inventory with
+    /// `Loadout.sanitized` or `EquippedGear(loadout:inventory:catalog:)`, since items may have been removed since.
+    public func loadout(of playerID: String) -> Loadout {
+        loadoutChanges.last { $0.playerID == playerID && allows($0) }?.loadout ?? .empty
+    }
+
+    /// A player's worn and held items, checked against their inventory.
+    public func equippedGear(of playerID: String, catalog: ItemCatalog) -> EquippedGear {
+        EquippedGear(loadout: loadout(of: playerID), inventory: inventory(of: playerID), catalog: catalog)
+    }
+
+    /// The player in this campaign playing a character, if any.
+    public func player(playingCharacter characterID: UUID) -> CampaignMember? {
+        players.first { $0.character?.id == characterID }
     }
 
     /// This person's role, or nil if they aren't in the campaign.
@@ -160,6 +194,8 @@ public enum CampaignError: Error, Equatable, Sendable {
     case invalidQuantity
     case itemNotInInventory
     case playerNotFound
+    /// Players can only change their own character's equipment.
+    case notYourCharacter
 }
 
 /// One line of a character's inventory, e.g. Longsword ×2.
@@ -205,6 +241,23 @@ public struct InventoryChange: Identifiable, Hashable, Codable, Sendable {
         self.itemID = itemID
         self.itemName = itemName
         self.delta = delta
+        self.authorID = authorID
+        self.date = date
+    }
+}
+
+/// A new loadout for a player's character, written by whoever changed it (the player or the DM).
+public struct LoadoutChange: Identifiable, Hashable, Codable, Sendable {
+    public let id: UUID
+    public var playerID: String
+    public var loadout: Loadout
+    public var authorID: String
+    public var date: Date
+
+    public init(id: UUID = UUID(), playerID: String, loadout: Loadout, authorID: String, date: Date = Date()) {
+        self.id = id
+        self.playerID = playerID
+        self.loadout = loadout
         self.authorID = authorID
         self.date = date
     }

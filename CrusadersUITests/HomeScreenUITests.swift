@@ -275,6 +275,55 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["No items yet."].waitForExistence(timeout: 5))
     }
 
+    func testEquippingArmourAndAWeaponFromTheInventory() {
+        app.terminate()
+        app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]
+        app.launch()
+
+        app.buttons["home.campaigns"].tap()
+        let row = campaignRow(named: "Test Table")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        app.buttons["Inventory"].tap()
+
+        for (query, id) in [("Chain Mail", "chain-mail"), ("Greatsword", "greatsword")] {
+            let add = app.buttons["inventory.add"]
+            XCTAssertTrue(add.waitForExistence(timeout: 5))
+            add.tap()
+            let search = app.searchFields.firstMatch
+            XCTAssertTrue(search.waitForExistence(timeout: 5))
+            search.tap()
+            search.typeText(query)
+            let item = app.buttons["itemPicker.item.\(id)"]
+            XCTAssertTrue(item.waitForExistence(timeout: 5))
+            item.tap()
+            XCTAssertTrue(app.staticTexts["inventory.item.\(id)"].waitForExistence(timeout: 5))
+        }
+
+        app.buttons["inventory.equip.chain-mail"].tap()
+        let wear = app.buttons["Wear"]
+        XCTAssertTrue(wear.waitForExistence(timeout: 5))
+        wear.tap()
+        let armourStatus = app.staticTexts["inventory.status.chain-mail"]
+        XCTAssertTrue(armourStatus.waitForExistence(timeout: 5))
+        XCTAssertEqual(armourStatus.label, "Worn")
+
+        app.buttons["inventory.equip.greatsword"].tap()
+        let hold = app.buttons["Hold in both hands"]
+        XCTAssertTrue(hold.waitForExistence(timeout: 5))
+        hold.tap()
+        let weaponStatus = app.staticTexts["inventory.status.greatsword"]
+        XCTAssertTrue(weaponStatus.waitForExistence(timeout: 5))
+        XCTAssertEqual(weaponStatus.label, "Both hands")
+
+        app.buttons["inventory.equip.chain-mail"].tap()
+        let takeOff = app.buttons["Take off"]
+        XCTAssertTrue(takeOff.waitForExistence(timeout: 5))
+        takeOff.tap()
+        let gone = XCTNSPredicateExpectation(predicate: NSPredicate(format: "exists == false"), object: armourStatus)
+        XCTAssertEqual(XCTWaiter().wait(for: [gone], timeout: 5), .completed)
+    }
+
     func testDMChatsWithThePartyAndWhispersToOnePlayer() {
         app.terminate()
         app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]

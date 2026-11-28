@@ -15,11 +15,17 @@ import CrusadersKit
 /// - `joinCode` (String, queryable), `playerID`, `itemID`, `itemName`, `authorID` (String), `delta` (Int64),
 ///   `changedAt` (Date). The app ignores changes the rules don't allow (see `Campaign.allows`).
 ///
+/// Record type `LoadoutChange`, one per change to what a character wears and holds, named `loadout-<uuid>`,
+/// written by the player or the DM:
+/// - `joinCode` (String, queryable), `playerID`, `authorID` (String), `changedAt` (Date),
+///   `loadout` (String: the `Loadout` as JSON). The latest allowed change per player counts.
+///
 /// CloudKit Dashboard setup is described in README.md (Campaigns).
 struct CloudKitCampaignDirectory: CampaignDirectory {
     static let campaignType = "Campaign"
     static let playerType = "CampaignPlayer"
     static let inventoryType = "InventoryChange"
+    static let loadoutType = "LoadoutChange"
 
     private var database: CKDatabase { CloudConfig.container.publicCloudDatabase }
 
@@ -51,7 +57,22 @@ struct CloudKitCampaignDirectory: CampaignDirectory {
         for change in try await records(type: Self.inventoryType, code: code).compactMap(Self.inventoryChange(from:)) {
             campaign.apply(change)
         }
+        // Equipment is optional: if the LoadoutChange record type isn't set up yet, campaigns still load.
+        for change in ((try? await records(type: Self.loadoutType, code: code)) ?? []).compactMap(Self.loadoutChange(from:)) {
+            campaign.apply(change)
+        }
         return campaign
+    }
+
+    func record(_ change: LoadoutChange, inCampaignWithCode code: String) async throws -> Campaign {
+        let record = Self.loadoutRecord(change, code: code)
+        let result = try await database.modifyRecords(saving: [record], deleting: [], savePolicy: .allKeys)
+        if let saveResult = result.saveResults[record.recordID] {
+            _ = try saveResult.get()
+        }
+        guard var updated = try await campaign(forJoinCode: code) else { throw CampaignError.campaignNotFound }
+        updated.apply(change)
+        return updated
     }
 
     func record(_ change: InventoryChange, inCampaignWithCode code: String) async throws -> Campaign {
@@ -181,6 +202,34 @@ struct CloudKitCampaignDirectory: CampaignDirectory {
               let date = record["changedAt"] as? Date else { return nil }
         return InventoryChange(id: id, playerID: playerID, itemID: itemID, itemName: itemName,
                                delta: delta, authorID: authorID, date: date)
+    }
+}
+
+extension CloudKitCampaignDirectory {
+    static func loadoutRecord(_ change: LoadoutChange, code: String) -> CKRecord {
+        let record = CKRecord(recordType: loadoutType, recordID: CKRecord.ID(recordName: "loadout-\(change.id.uuidString)"))
+        record["joinCode"] = code as CKRecordValue
+        record["playerID"] = change.playerID as CKRecordValue
+        record["authorID"] = change.authorID as CKRecordValue
+        record["changedAt"] = change.date as CKRecordValue
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let json = (try? encoder.encode(change.loadout)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        record["loadout"] = json as CKRecordValue
+        return record
+    }
+
+    static func loadoutChange(from record: CKRecord) -> LoadoutChange? {
+        let prefix = "loadout-"
+        let name = record.recordID.recordName
+        guard name.hasPrefix(prefix),
+              let id = UUID(uuidString: String(name.dropFirst(prefix.count))),
+              let playerID = record["playerID"] as? String,
+              let authorID = record["authorID"] as? String,
+              let date = record["changedAt"] as? Date,
+              let json = record["loadout"] as? String,
+              let loadout = try? JSONDecoder().decode(Loadout.self, from: Data(json.utf8)) else { return nil }
+        return LoadoutChange(id: id, playerID: playerID, loadout: loadout, authorID: authorID, date: date)
     }
 }
 

@@ -196,6 +196,80 @@ public final class CampaignManager {
         return try await send(change, code: code)
     }
 
+    // MARK: Equipment
+
+    /// Wears or wields an item from a character's inventory (5e rules: one body armour, one shield, two hands,
+    /// two-handed weapons use both). `base` picks what a magic item like "Armor, +1" is made from.
+    @discardableResult
+    public func equip(itemID: String, in slot: EquipSlot, base: String? = nil, for playerID: String,
+                      inCampaign code: String, catalog: ItemCatalog) async throws -> Campaign {
+        try await changeLoadout(of: playerID, inCampaign: code, catalog: catalog) { loadout, inventory in
+            try loadout.equip(itemID, in: slot, base: base, inventory: inventory, catalog: catalog)
+        }
+    }
+
+    @discardableResult
+    public func unequip(itemID: String, for playerID: String, inCampaign code: String,
+                        catalog: ItemCatalog) async throws -> Campaign {
+        try await changeLoadout(of: playerID, inCampaign: code, catalog: catalog) { loadout, _ in
+            loadout.unequip(itemID)
+        }
+    }
+
+    /// Switches a versatile main-hand weapon between one and two hands.
+    @discardableResult
+    public func setUsesBothHands(_ both: Bool, for playerID: String, inCampaign code: String,
+                                 catalog: ItemCatalog) async throws -> Campaign {
+        try await changeLoadout(of: playerID, inCampaign: code, catalog: catalog) { loadout, _ in
+            try loadout.setUsesBothHands(both, catalog: catalog)
+        }
+    }
+
+    /// Attunes the character to a magic item (at most 3).
+    @discardableResult
+    public func attune(itemID: String, for playerID: String, inCampaign code: String,
+                       catalog: ItemCatalog) async throws -> Campaign {
+        try await changeLoadout(of: playerID, inCampaign: code, catalog: catalog) { loadout, inventory in
+            try loadout.attune(itemID, inventory: inventory, catalog: catalog)
+        }
+    }
+
+    @discardableResult
+    public func endAttunement(itemID: String, for playerID: String, inCampaign code: String,
+                              catalog: ItemCatalog) async throws -> Campaign {
+        try await changeLoadout(of: playerID, inCampaign: code, catalog: catalog) { loadout, _ in
+            loadout.endAttunement(itemID)
+        }
+    }
+
+    /// Only the DM or the player who owns the character may change its loadout.
+    private func changeLoadout(
+        of playerID: String,
+        inCampaign code: String,
+        catalog: ItemCatalog,
+        _ change: (inout Loadout, [InventoryEntry]) throws -> Void
+    ) async throws -> Campaign {
+        let campaign = try requireCampaign(code)
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        guard campaign.role(of: me.id) == .dungeonMaster || me.id == playerID else { throw CampaignError.notYourCharacter }
+        let inventory = campaign.inventory(of: playerID)
+        var loadout = campaign.loadout(of: playerID).sanitized(inventory: inventory, catalog: catalog)
+        try change(&loadout, inventory)
+        let record = LoadoutChange(playerID: playerID, loadout: loadout, authorID: me.id,
+                                   date: max(Date(), (campaign.loadoutChanges.last?.date ?? .distantPast).addingTimeInterval(0.001)))
+        let updated: Campaign
+        do {
+            updated = try await directory.record(record, inCampaignWithCode: code)
+        } catch let error as CampaignError {
+            throw error
+        } catch {
+            throw CampaignError.directoryUnavailable
+        }
+        book.upsert(updated)
+        persist()
+        return updated
+    }
+
     private func requireCampaign(_ code: String) throws -> Campaign {
         guard let campaign = book.campaign(code: code) else { throw CampaignError.campaignNotFound }
         return campaign
