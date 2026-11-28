@@ -83,23 +83,16 @@ final class HomeScreenUITests: XCTestCase {
         }
         addSpells.tap()
 
-        // Fighters can't cast, so the picker opens on All spells. Search so the row is on screen
-        // whatever the text size (the list only builds rows that are visible).
-        let search = app.searchFields.firstMatch
-        XCTAssertTrue(search.waitForExistence(timeout: 5))
-        search.tap()
-        search.typeText("Fire Bolt")
+        // Fighters can't cast, so the picker opens on All spells. Fire Bolt is among the first cantrips,
+        // but bigger text can push it below the fold, and the list only builds rows that are on screen.
         let row = app.buttons["spells.row.fire-bolt"]
+        for _ in 0..<10 where !(row.exists && row.isHittable) {
+            app.swipeUp()
+        }
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
         XCTAssertEqual(row.value as? String, "Known")
-        // An active search hides the toolbar, so close it to get Done back.
-        let cancel = app.buttons["Cancel"].firstMatch
-        XCTAssertTrue(cancel.waitForExistence(timeout: 5))
-        cancel.tap()
-        let done = app.buttons["spells.done"]
-        XCTAssertTrue(done.waitForExistence(timeout: 5))
-        done.tap()
+        app.buttons["spells.done"].tap()
 
         XCTAssertTrue(element(labelContaining: "Fire Bolt").waitForExistence(timeout: 5))
     }
