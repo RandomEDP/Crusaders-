@@ -203,7 +203,7 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(add.waitForExistence(timeout: 5))
         add.tap()
 
-        app.steppers["itemPicker.quantity"].buttons["Increment"].tap()
+        app.buttons["itemPicker.quantity-Increment"].tap()
         let search = app.searchFields.firstMatch
         XCTAssertTrue(search.waitForExistence(timeout: 5))
         search.tap()
