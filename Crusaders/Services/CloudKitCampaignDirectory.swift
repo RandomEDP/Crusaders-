@@ -20,12 +20,17 @@ import CrusadersKit
 /// - `joinCode` (String, queryable), `playerID`, `authorID` (String), `changedAt` (Date),
 ///   `loadout` (String: the `Loadout` as JSON). The latest allowed change per player counts.
 ///
+/// Record type `CombatEvent`, one per damage, healing, potion effect or round change, named `combat-<uuid>`:
+/// - `joinCode` (String, queryable), `playerID`, `authorID` (String), `changedAt` (Date),
+///   `event` (String: the `CombatEvent` as JSON). The app ignores events the rules don't allow.
+///
 /// CloudKit Dashboard setup is described in README.md (Campaigns).
 struct CloudKitCampaignDirectory: CampaignDirectory {
     static let campaignType = "Campaign"
     static let playerType = "CampaignPlayer"
     static let inventoryType = "InventoryChange"
     static let loadoutType = "LoadoutChange"
+    static let combatType = "CombatEvent"
 
     private var database: CKDatabase { CloudConfig.container.publicCloudDatabase }
 
@@ -61,7 +66,23 @@ struct CloudKitCampaignDirectory: CampaignDirectory {
         for change in ((try? await records(type: Self.loadoutType, code: code)) ?? []).compactMap(Self.loadoutChange(from:)) {
             campaign.apply(change)
         }
+        for event in ((try? await records(type: Self.combatType, code: code)) ?? []).compactMap(Self.combatEvent(from:)) {
+            campaign.apply(event)
+        }
         return campaign
+    }
+
+    func record(_ events: [CombatEvent], inCampaignWithCode code: String) async throws -> Campaign {
+        let records = events.map { Self.combatRecord($0, code: code) }
+        let result = try await database.modifyRecords(saving: records, deleting: [], savePolicy: .allKeys)
+        for record in records {
+            if let saveResult = result.saveResults[record.recordID] {
+                _ = try saveResult.get()
+            }
+        }
+        guard var updated = try await campaign(forJoinCode: code) else { throw CampaignError.campaignNotFound }
+        for event in events { updated.apply(event) }
+        return updated
     }
 
     func record(_ change: LoadoutChange, inCampaignWithCode code: String) async throws -> Campaign {
@@ -230,6 +251,35 @@ extension CloudKitCampaignDirectory {
               let json = record["loadout"] as? String,
               let loadout = try? JSONDecoder().decode(Loadout.self, from: Data(json.utf8)) else { return nil }
         return LoadoutChange(id: id, playerID: playerID, loadout: loadout, authorID: authorID, date: date)
+    }
+}
+
+extension CloudKitCampaignDirectory {
+    static func combatRecord(_ event: CombatEvent, code: String) -> CKRecord {
+        let record = CKRecord(recordType: combatType, recordID: CKRecord.ID(recordName: "combat-\(event.id.uuidString)"))
+        record["joinCode"] = code as CKRecordValue
+        record["playerID"] = event.playerID as CKRecordValue
+        record["authorID"] = event.authorID as CKRecordValue
+        record["changedAt"] = event.date as CKRecordValue
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.sortedKeys]
+        let json = (try? encoder.encode(event)).flatMap { String(data: $0, encoding: .utf8) } ?? "{}"
+        record["event"] = json as CKRecordValue
+        return record
+    }
+
+    /// Player, author and date come from the record's own (queryable) fields.
+    static func combatEvent(from record: CKRecord) -> CombatEvent? {
+        guard record.recordID.recordName.hasPrefix("combat-"),
+              let json = record["event"] as? String,
+              var event = try? JSONDecoder().decode(CombatEvent.self, from: Data(json.utf8)),
+              let playerID = record["playerID"] as? String,
+              let authorID = record["authorID"] as? String,
+              let date = record["changedAt"] as? Date else { return nil }
+        event.playerID = playerID
+        event.authorID = authorID
+        event.date = date
+        return event
     }
 }
 

@@ -320,4 +320,50 @@ final class AppModelTests: XCTestCase {
         record["loadout"] = "not json" as CKRecordValue
         XCTAssertNil(CloudKitCampaignDirectory.loadoutChange(from: record))
     }
+
+    // MARK: Combat
+
+    func testDamageAndPotionsShowOnTheCharacterSheet() async throws {
+        let shared = InMemoryCampaignDirectory()
+        let dm = makeModel(directory: shared)
+        let friend = AppModel(campaigns: CampaignManager(directory: shared, persistence: InMemoryCampaignPersistence()),
+                              diceRoller: .sequence([1]))
+        var draft = CharacterDraft.starter(catalog: friend.rules)
+        draft.name = "Thalia"
+        let hero = try friend.createCharacter(from: draft)
+        let campaign = try await dm.createCampaign(name: "Tomb", yourName: "Dana")
+        try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria", characterID: hero.id)
+        await dm.campaigns.refresh()
+        let playerID = friend.campaigns.me.id
+
+        let maxHP = try XCTUnwrap(friend.sheet(for: hero.id)).maxHitPoints
+        try await dm.campaigns.dealDamage(5, type: .slashing, to: playerID, inCampaign: campaign.joinCode)
+        let potion = try XCTUnwrap(dm.itemLibrary.catalog.item(id: "potion-of-healing"))
+        try await dm.addItem(potion, quantity: 1, to: playerID, inCampaign: campaign.joinCode)
+        await friend.campaigns.refresh()
+        XCTAssertEqual(friend.sheet(for: hero.id)?.health.current, maxHP - 5)
+
+        try await friend.usePotion("potion-of-healing", for: playerID, inCampaign: campaign.joinCode)
+        XCTAssertEqual(friend.sheet(for: hero.id)?.health.current, maxHP - 5 + 4, "1 + 1 + 2 with the fixed dice")
+
+        // The player's phone tells the DM the max HP and AC.
+        await friend.reportStatus(inCampaign: campaign.joinCode)
+        await dm.campaigns.refresh()
+        let report = dm.campaigns.campaign(code: campaign.joinCode)?.combatState(of: playerID).lastReport
+        XCTAssertEqual(report?.maxHitPoints, maxHP)
+    }
+
+    func testCloudKitCombatRecordsRoundTrip() {
+        let effect = ActiveEffect(name: "Potion of Speed", startRound: 3, durationRounds: 10,
+                                  modifiers: EffectModifiers(armorClassBonus: 2, speedMultiplier: 2))
+        let event = CombatEvent(playerID: "p1", kind: .effectStarted(effect), authorID: "p1",
+                                date: Date(timeIntervalSince1970: 3_000), note: "Potion of Speed: 10 rounds")
+        let record = CloudKitCampaignDirectory.combatRecord(event, code: "042917")
+        XCTAssertEqual(record.recordType, "CombatEvent")
+        XCTAssertEqual(record["joinCode"] as? String, "042917")
+        XCTAssertEqual(CloudKitCampaignDirectory.combatEvent(from: record), event)
+
+        record["event"] = "nope" as CKRecordValue
+        XCTAssertNil(CloudKitCampaignDirectory.combatEvent(from: record))
+    }
 }
