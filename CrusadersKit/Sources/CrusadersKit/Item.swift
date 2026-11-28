@@ -34,14 +34,26 @@ public enum Coin: String, Codable, CaseIterable, Identifiable, Sendable {
 
     public var id: String { rawValue }
 
-    /// Value in copper pieces.
+    /// Value in copper pieces, using this table's house rule: 1 gp = 100 sp and 1 sp = 100 cp
+    /// (5e uses 10 for both). Electrum and platinum keep their 5e worth against gold: 1 ep = ½ gp, 1 pp = 10 gp.
     public var copperValue: Int {
         switch self {
         case .cp: return 1
-        case .sp: return 10
-        case .ep: return 50
-        case .gp: return 100
-        case .pp: return 1000
+        case .sp: return 100
+        case .ep: return 5_000
+        case .gp: return 10_000
+        case .pp: return 100_000
+        }
+    }
+
+    /// e.g. "Gold"
+    public var title: String {
+        switch self {
+        case .cp: return "Copper"
+        case .sp: return "Silver"
+        case .ep: return "Electrum"
+        case .gp: return "Gold"
+        case .pp: return "Platinum"
         }
     }
 }
