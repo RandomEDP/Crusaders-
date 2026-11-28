@@ -22,12 +22,16 @@ public struct CharacterSheet: Sendable {
     public let characterClass: CharacterClass?
     /// Worn and held items and attunements. Their AC, attack, speed and save changes show on the sheet.
     public let gear: EquippedGear
+    /// Damage, healing and active effects (potions) in a campaign.
+    public let combat: CombatState
     private let catalog: RulesCatalog
 
-    public init(character: PlayerCharacter, catalog: RulesCatalog = .srd, gear: EquippedGear = .none) {
+    public init(character: PlayerCharacter, catalog: RulesCatalog = .srd, gear: EquippedGear = .none,
+                combat: CombatState = .none) {
         self.character = character
         self.catalog = catalog
         self.gear = gear
+        self.combat = combat
         let race = catalog.race(id: character.raceID)
         self.race = race
         self.subrace = race?.subrace(id: character.subraceID)
@@ -59,7 +63,12 @@ public struct CharacterSheet: Sendable {
         for ability in character.improvementPoints {
             improvements[ability, default: 0] += 1
         }
-        return character.baseAbilityScores.adding(racialBonuses).adding(improvements)
+        var scores = character.baseAbilityScores.adding(racialBonuses).adding(improvements)
+        // Potions of Giant Strength set Strength while they last, unless it's already higher.
+        if let strength = combat.activeEffects.compactMap(\.modifiers.strengthScore).max() {
+            scores.str = max(scores.str, strength)
+        }
+        return scores
     }
 
     public func modifier(_ ability: Ability) -> Int {
@@ -85,7 +94,7 @@ public struct CharacterSheet: Sendable {
     public var baseSpeed: Int { race?.speed ?? 30 }
 
     /// Walking speed, 10 feet slower in heavy armour the character isn't strong enough for (see `armourSpeedPenalty`).
-    public var speed: Int { max(0, baseSpeed - armourSpeedPenalty) }
+    public var speed: Int { max(0, baseSpeed - armourSpeedPenalty) * effectSpeedMultiplier }
 
     public var initiative: Int { modifier(.dex) }
 

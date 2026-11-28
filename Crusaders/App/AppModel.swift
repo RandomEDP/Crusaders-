@@ -102,7 +102,19 @@ final class AppModel {
     /// The character sheet with equipped items applied: from the campaign given, or else the first campaign
     /// this user plays the character in.
     func sheet(for id: PlayerCharacter.ID, campaignCode: String? = nil) -> CharacterSheet? {
-        character(id: id).map { CharacterSheet(character: $0, catalog: rules, gear: gear(for: id, campaignCode: campaignCode)) }
+        guard let character = character(id: id) else { return nil }
+        let campaign = playedCampaign(for: id, code: campaignCode)
+        return CharacterSheet(
+            character: character, catalog: rules,
+            gear: campaign?.equippedGear(of: campaigns.me.id, catalog: itemLibrary.catalog) ?? .none,
+            combat: campaign?.combatState(of: campaigns.me.id) ?? .none
+        )
+    }
+
+    /// The campaign given (if this user plays the character there), or the first one they play it in.
+    private func playedCampaign(for characterID: PlayerCharacter.ID, code: String?) -> Campaign? {
+        let playing = campaigns(playing: characterID)
+        return code.flatMap { code in playing.first { $0.joinCode == code } } ?? playing.first
     }
 
     /// Campaigns where this user plays the character, in the order they were joined.
@@ -113,9 +125,7 @@ final class AppModel {
 
     /// What the character wears and holds in a campaign (or the first campaign they're in).
     func gear(for characterID: PlayerCharacter.ID, campaignCode: String? = nil) -> EquippedGear {
-        let playing = campaigns(playing: characterID)
-        let campaign = campaignCode.flatMap { code in playing.first { $0.joinCode == code } } ?? playing.first
-        guard let campaign else { return .none }
+        guard let campaign = playedCampaign(for: characterID, code: campaignCode) else { return .none }
         return campaign.equippedGear(of: campaigns.me.id, catalog: itemLibrary.catalog)
     }
 
@@ -198,6 +208,22 @@ final class AppModel {
     @discardableResult
     func endAttunement(_ itemID: String, for playerID: String, inCampaign code: String) async throws -> Campaign {
         try await campaigns.endAttunement(itemID: itemID, for: playerID, inCampaign: code, catalog: itemLibrary.catalog)
+    }
+
+    // MARK: Combat
+
+    /// Drinks a potion from a character's inventory and applies its effects.
+    @discardableResult
+    func usePotion(_ itemID: String, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.usePotion(itemID: itemID, for: playerID, inCampaign: code, roller: diceRoller)
+    }
+
+    /// On a player's phone: tells the DM this character's max HP and AC in the campaign, if they changed.
+    func reportStatus(inCampaign code: String) async {
+        guard let campaign = campaigns.campaign(code: code),
+              let characterID = campaign.player(id: campaigns.me.id)?.character?.id,
+              let sheet = sheet(for: characterID, campaignCode: code) else { return }
+        _ = try? await campaigns.reportStatus(maxHitPoints: sheet.maxHitPoints, armorClass: sheet.armorClass, inCampaign: code)
     }
 
     /// The DM, or the player who owns the character, removes one of an item.

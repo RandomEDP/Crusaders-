@@ -6,6 +6,7 @@ struct CampaignDetailView: View {
     enum Tab: String, CaseIterable, Identifiable {
         case party = "Party"
         case inventory = "Inventory"
+        case combat = "Combat"
         case chat = "Chat"
         var id: String { rawValue }
     }
@@ -16,6 +17,7 @@ struct CampaignDetailView: View {
     @State private var addingTo: CampaignMember?
     @State private var errorMessage: String?
     @State private var choosingBase: BaseChoice?
+    @State private var combatAction: CombatAction?
 
     /// A magic item like "Armor, +1" waiting for the player to say which armour or weapon it is.
     struct BaseChoice: Identifiable {
@@ -50,6 +52,7 @@ struct CampaignDetailView: View {
                 switch tab {
                 case .party: party(campaign, manager: manager)
                 case .inventory: inventory(campaign, manager: manager)
+                case .combat: combat(campaign, manager: manager)
                 case .chat: chats(campaign, manager: manager)
                 }
             }
@@ -60,6 +63,18 @@ struct CampaignDetailView: View {
             .sheet(item: $addingTo) { player in
                 InventoryItemPicker(player: player) { item, quantity in
                     _ = try await model.addItem(item, quantity: quantity, to: player.id, inCampaign: code)
+                }
+            }
+            .task(id: campaign.loadoutChanges.count + campaign.inventoryChanges.count) {
+                await model.reportStatus(inCampaign: code)
+            }
+            .sheet(item: $combatAction) { action in
+                CombatAmountSheet(action: action) { amount, type in
+                    switch action.kind {
+                    case .damage: try await model.campaigns.dealDamage(amount, type: type, to: action.player.id, inCampaign: code)
+                    case .heal: try await model.campaigns.heal(amount, for: action.player.id, inCampaign: code)
+                    case .temporary: try await model.campaigns.giveTemporaryHitPoints(amount, to: action.player.id, inCampaign: code)
+                    }
                 }
             }
             .sheet(item: $choosingBase) { choice in
@@ -193,6 +208,124 @@ struct CampaignDetailView: View {
         .accessibilityIdentifier("chat.channel.\(channel.id)")
     }
 
+    // MARK: - Combat
+
+    /// The round counter, and each character's hit points and effects. The DM deals damage and heals here.
+    @ViewBuilder
+    private func combat(_ campaign: Campaign, manager: CampaignManager) -> some View {
+        let isDM = manager.role(in: campaign) == .dungeonMaster
+        let players = isDM ? campaign.players : campaign.players.filter { $0.id == manager.me.id }
+
+        ThemedSection {
+            Text("Round \(campaign.round)")
+                .font(.gothic(.title2))
+                .accessibilityIdentifier("combat.round")
+            if isDM {
+                Button {
+                    Task { await run { try await manager.advanceRounds(1, inCampaign: code) } }
+                } label: {
+                    Label("Next round", systemImage: "forward.end")
+                }
+                .accessibilityIdentifier("combat.nextRound")
+                Button {
+                    Task { await run { try await manager.advanceRounds(PotionEffect.minute, inCampaign: code) } }
+                } label: {
+                    Label("1 minute passes (10 rounds)", systemImage: "clock")
+                }
+                .accessibilityIdentifier("combat.nextMinute")
+            }
+        } footer: {
+            Text("1 round is 6 seconds. Potion effects count down as the Dungeon Master moves rounds on.")
+        }
+
+        if players.isEmpty {
+            Text(isDM ? "No players yet." : "You're not in this campaign's party.")
+                .foregroundStyle(Theme.inkSoft)
+                .parchmentRow()
+        }
+
+        ForEach(players) { player in
+            let state = campaign.combatState(of: player.id)
+            ThemedSection {
+                Text(healthText(for: player, state: state, campaign: campaign, manager: manager))
+                    .font(.serifBold(.headline))
+                    .accessibilityIdentifier("combat.hp.\(player.id)")
+                ForEach(state.activeEffects) { effect in
+                    HStack {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(effect.name)
+                            Text(ActiveEffect.timeLeftText(effect.roundsLeft(atRound: state.round)))
+                                .font(.serif(.caption))
+                                .foregroundStyle(Theme.inkSoft)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("combat.effect")
+                        Spacer()
+                        if isDM || player.id == manager.me.id {
+                            Button("End") {
+                                Task { await run { try await manager.endEffect(effect.id, for: player.id, inCampaign: code) } }
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                }
+                if isDM {
+                    HStack {
+                        combatButton("Damage", "burst", .damage, player)
+                        combatButton("Heal", "cross.case", .heal, player)
+                        combatButton("Temp HP", "shield.lefthalf.filled", .temporary, player)
+                    }
+                    Button {
+                        Task { await run { try await manager.longRest(player.id, inCampaign: code) } }
+                    } label: {
+                        Label("Long rest (full HP, end effects)", systemImage: "moon.zzz")
+                    }
+                    .accessibilityIdentifier("combat.longRest.\(player.id)")
+                }
+                ForEach(Array(state.events.suffix(5).reversed())) { event in
+                    if let note = event.note {
+                        Text(note).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
+                    }
+                }
+            } header: {
+                Text(player.character.map { "\($0.name) (\(player.name))" } ?? player.name)
+            }
+        }
+    }
+
+    private func combatButton(_ title: String, _ image: String, _ kind: CombatAction.Kind, _ player: CampaignMember) -> some View {
+        Button {
+            combatAction = CombatAction(kind: kind, player: player)
+        } label: {
+            Label(title, systemImage: image).font(.serif(.subheadline))
+        }
+        .buttonStyle(.bordered)
+        .contentShape(Rectangle())
+        .accessibilityIdentifier("combat.\(kind.rawValue).\(player.id)")
+    }
+
+    /// The player's own phone knows the full sheet; the DM uses the max HP and AC the player's phone reported.
+    private func healthText(for player: CampaignMember, state: CombatState, campaign: Campaign, manager: CampaignManager) -> String {
+        if player.id == manager.me.id, let characterID = player.character?.id,
+           let sheet = model.sheet(for: characterID, campaignCode: campaign.joinCode) {
+            return "\(sheet.health.text) · AC \(sheet.armorClass)"
+        }
+        if let report = state.lastReport {
+            return "\(state.health(maxHitPoints: report.maxHitPoints).text) · AC \(report.armorClass)"
+        }
+        let net = state.netDamage
+        return net > 0 ? "\(net) damage taken" : "No damage taken"
+    }
+
+    private func run(_ action: () async throws -> Campaign) async {
+        do {
+            _ = try await action()
+            errorMessage = nil
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+    }
+
     // MARK: - Inventory
 
     @ViewBuilder
@@ -267,6 +400,8 @@ struct CampaignDetailView: View {
             switch action {
             case .equip(let slot):
                 try await model.equip(entry.itemID, in: slot, for: player.id, inCampaign: code)
+            case .use:
+                try await model.usePotion(entry.itemID, for: player.id, inCampaign: code)
             case .chooseBase:
                 let catalog = model.itemLibrary.catalog
                 guard let item = catalog.item(id: entry.itemID) else { return }
@@ -377,6 +512,8 @@ struct InventoryItemPicker: View {
 /// One inventory line: name, quantity, where it's worn or held, and the equip menu.
 struct InventoryRow: View {
     enum Action {
+        /// Drink a potion.
+        case use
         case equip(EquipSlot)
         /// Pick which armour or weapon a magic item is, then equip it.
         case chooseBase
@@ -410,6 +547,17 @@ struct InventoryRow: View {
                 }
             }
             Spacer()
+            if canEquip, PotionEffect.srd(entry.itemID) != nil {
+                Button {
+                    perform(.use)
+                } label: {
+                    Image(systemName: "flask")
+                        .padding(.horizontal, 6)
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Use \(entry.name)")
+                .accessibilityIdentifier("inventory.use.\(entry.itemID)")
+            }
             if canEquip, let gear, !gear.allowedSlots.isEmpty || gear.item.requiresAttunement || !baseOptions.isEmpty {
                 Menu {
                     menuItems(gear, baseOptions: baseOptions)
@@ -525,6 +673,92 @@ struct BaseItemPicker: View {
                     Button("Cancel") { dismiss() }
                 }
             }
+        }
+    }
+}
+
+/// Damage, healing or temporary hit points the DM is about to give a player.
+struct CombatAction: Identifiable {
+    enum Kind: String {
+        case damage, heal, temporary
+    }
+
+    let kind: Kind
+    let player: CampaignMember
+    var id: String { "\(kind.rawValue)-\(player.id)" }
+
+    var title: String {
+        switch kind {
+        case .damage: return "Deal damage"
+        case .heal: return "Heal"
+        case .temporary: return "Temporary HP"
+        }
+    }
+}
+
+/// Asks the DM how much damage (and what type), healing or temporary HP to give.
+struct CombatAmountSheet: View {
+    let action: CombatAction
+    let apply: (Int, DamageType) async throws -> Void
+
+    @Environment(\.dismiss) private var dismiss
+    @State private var amountText = ""
+    @State private var damageType: DamageType = .none
+    @State private var errorMessage: String?
+
+    var body: some View {
+        NavigationStack {
+            List {
+                ThemedSection {
+                    TextField("Amount", text: $amountText)
+                        .keyboardType(.numberPad)
+                        .accessibilityIdentifier("combat.amount")
+                    if action.kind == .damage {
+                        Picker("Damage type", selection: $damageType) {
+                            ForEach(DamageType.allCases) { Text($0.title).tag($0) }
+                        }
+                    }
+                    if let errorMessage {
+                        Text(errorMessage).foregroundStyle(Theme.crimson)
+                    }
+                } footer: {
+                    Text(footer)
+                }
+            }
+            .navigationTitle(action.title)
+            .parchmentScreen()
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Apply") { Task { await submit() } }
+                        .accessibilityIdentifier("combat.apply")
+                }
+            }
+        }
+    }
+
+    private var footer: String {
+        let name = action.player.character?.name ?? action.player.name
+        switch action.kind {
+        case .damage: return "\(name) loses temporary hit points first, then hit points. HP never goes below 0."
+        case .heal: return "\(name) can't go above their hit point maximum."
+        case .temporary: return "Temporary hit points don't stack: \(name) keeps the higher amount."
+        }
+    }
+
+    private func submit() async {
+        guard let amount = Int(amountText.trimmingCharacters(in: .whitespaces)), amount > 0 else {
+            errorMessage = CombatError.invalidAmount.localizedDescription
+            return
+        }
+        do {
+            try await apply(amount, damageType)
+            dismiss()
+        } catch {
+            errorMessage = error.localizedDescription
         }
     }
 }

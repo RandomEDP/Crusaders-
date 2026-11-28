@@ -270,6 +270,120 @@ public final class CampaignManager {
         return updated
     }
 
+    // MARK: Combat
+
+    /// The DM deals damage to a player's character. Temporary hit points go first.
+    @discardableResult
+    public func dealDamage(_ amount: Int, type: DamageType = .none, to playerID: String,
+                           inCampaign code: String) async throws -> Campaign {
+        guard amount > 0 else { throw CombatError.invalidAmount }
+        let note = type == .none ? "Took \(amount) damage" : "Took \(amount) \(type.rawValue) damage"
+        return try await dmEvent(.damage(amount: amount, type: type), for: playerID, note: note, code: code)
+    }
+
+    /// The DM heals a player's character (never above their max).
+    @discardableResult
+    public func heal(_ amount: Int, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard amount > 0 else { throw CombatError.invalidAmount }
+        return try await dmEvent(.healing(amount: amount), for: playerID, note: "Regained \(amount) HP", code: code)
+    }
+
+    /// The DM gives temporary hit points (they don't stack; the higher amount stays).
+    @discardableResult
+    public func giveTemporaryHitPoints(_ amount: Int, to playerID: String, inCampaign code: String) async throws -> Campaign {
+        guard amount > 0 else { throw CombatError.invalidAmount }
+        return try await dmEvent(.temporaryHitPoints(amount: amount), for: playerID,
+                                 note: "\(amount) temporary HP", code: code)
+    }
+
+    /// The DM restores a character to full hit points and ends their effects.
+    @discardableResult
+    public func longRest(_ playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await dmEvent(.longRest, for: playerID, note: "Long rest", code: code)
+    }
+
+    /// The DM moves the campaign on, e.g. 1 round, or 10 rounds for a minute. Effects count down.
+    @discardableResult
+    public func advanceRounds(_ count: Int = 1, inCampaign code: String) async throws -> Campaign {
+        guard count > 0 else { throw CombatError.invalidAmount }
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .dungeonMaster else { throw CombatError.onlyDungeonMaster }
+        return try await record([CombatEvent(playerID: "", kind: .roundsAdvanced(count: count), authorID: me.id,
+                                             date: nextDate(campaign))], code: code)
+    }
+
+    /// Ends an effect early (the DM, or the player whose character has it).
+    @discardableResult
+    public func endEffect(_ effectID: UUID, for playerID: String, inCampaign code: String) async throws -> Campaign {
+        let campaign = try requireCampaign(code)
+        try checkCanAct(on: playerID, in: campaign)
+        let name = campaign.combatState(of: playerID).activeEffects.first { $0.id == effectID }?.name ?? "Effect"
+        return try await record([CombatEvent(playerID: playerID, kind: .effectEnded(effectID: effectID), authorID: me.id,
+                                             date: nextDate(campaign), note: "\(name) ended")], code: code)
+    }
+
+    /// Drinks a potion: takes one out of the inventory, rolls its dice and applies its effects
+    /// (healing, temporary HP, damage, or a boost for some rounds). The DM or the owning player can do it.
+    @discardableResult
+    public func usePotion(itemID: String, for playerID: String, inCampaign code: String,
+                          roller: DiceRoller = .random) async throws -> Campaign {
+        let campaign = try requireCampaign(code)
+        try checkCanAct(on: playerID, in: campaign)
+        guard let effect = PotionEffect.srd(itemID) else { throw CombatError.cantUseItem }
+        guard let entry = campaign.inventory(of: playerID).first(where: { $0.itemID == itemID }) else {
+            throw CampaignError.itemNotInInventory
+        }
+        let events = effect.events(itemName: entry.name, playerID: playerID, authorID: me.id, round: campaign.round,
+                                   roller: roller, date: nextDate(campaign))
+        try await removeItem(itemID: itemID, from: playerID, inCampaign: code)
+        return try await record(events, code: code)
+    }
+
+    /// The player's phone reports their character's max HP and AC so the DM can see them.
+    /// Nothing is sent if the last report already says the same.
+    @discardableResult
+    public func reportStatus(maxHitPoints: Int, armorClass: Int, inCampaign code: String) async throws -> Campaign? {
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .player else { return nil }
+        if let last = campaign.combatState(of: me.id).lastReport,
+           last.maxHitPoints == maxHitPoints, last.armorClass == armorClass { return nil }
+        return try await record([CombatEvent(playerID: me.id,
+                                             kind: .statusReport(maxHitPoints: maxHitPoints, armorClass: armorClass),
+                                             authorID: me.id, date: nextDate(campaign))], code: code)
+    }
+
+    private func dmEvent(_ kind: CombatEvent.Kind, for playerID: String, note: String, code: String) async throws -> Campaign {
+        let campaign = try requireCampaign(code)
+        guard campaign.role(of: me.id) == .dungeonMaster else { throw CombatError.onlyDungeonMaster }
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        return try await record([CombatEvent(playerID: playerID, kind: kind, authorID: me.id,
+                                             date: nextDate(campaign), note: note)], code: code)
+    }
+
+    private func checkCanAct(on playerID: String, in campaign: Campaign) throws {
+        guard campaign.player(id: playerID) != nil else { throw CampaignError.playerNotFound }
+        guard campaign.role(of: me.id) == .dungeonMaster || me.id == playerID else { throw CombatError.notYourCharacter }
+    }
+
+    /// Now, but always after the campaign's last combat event, so events never tie.
+    private func nextDate(_ campaign: Campaign) -> Date {
+        max(Date(), (campaign.combatEvents.last?.date ?? .distantPast).addingTimeInterval(0.01))
+    }
+
+    private func record(_ events: [CombatEvent], code: String) async throws -> Campaign {
+        let updated: Campaign
+        do {
+            updated = try await directory.record(events, inCampaignWithCode: code)
+        } catch let error as CampaignError {
+            throw error
+        } catch {
+            throw CampaignError.directoryUnavailable
+        }
+        book.upsert(updated)
+        persist()
+        return updated
+    }
+
     private func requireCampaign(_ code: String) throws -> Campaign {
         guard let campaign = book.campaign(code: code) else { throw CampaignError.campaignNotFound }
         return campaign
