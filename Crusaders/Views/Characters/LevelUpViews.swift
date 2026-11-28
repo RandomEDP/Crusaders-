@@ -122,7 +122,7 @@ struct LevelUpView: View {
 
     private func levelSection(_ unlocks: LevelUnlocks) -> some View {
         Section("Level \(unlocks.level)") {
-            Label("+\(unlocks.hitPointIncrease) max hit points", systemImage: "heart.fill")
+            Label(hitPointText(unlocks), systemImage: "heart.fill")
             if let bonus = unlocks.proficiencyBonus {
                 Label("Proficiency bonus is now +\(bonus)", systemImage: "arrow.up.circle")
             }
@@ -172,6 +172,11 @@ struct LevelUpView: View {
                 }
             }
         }
+    }
+
+    private func hitPointText(_ unlocks: LevelUnlocks) -> String {
+        guard let roll = unlocks.hitPointRoll else { return "+\(unlocks.hitPointIncrease) max hit points" }
+        return "+\(unlocks.hitPointIncrease) max hit points (rolled \(roll))"
     }
 
     private func changeText(_ change: LevelUpChange) -> String {
