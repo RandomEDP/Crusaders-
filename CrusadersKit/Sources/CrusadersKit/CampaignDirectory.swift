@@ -11,6 +11,9 @@ public protocol CampaignDirectory: Sendable {
     /// Lists a player in the campaign and returns it with the updated player list.
     /// Throws `CampaignError.campaignNotFound` if the code isn't used.
     func addPlayer(_ player: CampaignMember, toCampaignWithCode code: String) async throws -> Campaign
+    /// Saves an inventory change and returns the campaign with it applied.
+    /// Throws `CampaignError.campaignNotFound` if the code isn't used.
+    func record(_ change: InventoryChange, inCampaignWithCode code: String) async throws -> Campaign
 }
 
 /// Keeps campaigns in memory. Used by tests, previews, and the app while iCloud is switched off.
@@ -37,6 +40,13 @@ public actor InMemoryCampaignDirectory: CampaignDirectory {
         return campaign
     }
 
+    public func record(_ change: InventoryChange, inCampaignWithCode code: String) async throws -> Campaign {
+        guard var campaign = campaigns[code] else { throw CampaignError.campaignNotFound }
+        campaign.apply(change)
+        campaigns[code] = campaign
+        return campaign
+    }
+
     /// The sample campaign's code, so people can try joining before iCloud is on.
     public static let sampleCode = "123456"
 
@@ -45,7 +55,19 @@ public actor InMemoryCampaignDirectory: CampaignDirectory {
             name: "The Sunken Citadel",
             joinCode: sampleCode,
             dungeonMaster: CampaignMember(id: "sample-dm", name: "Sample DM"),
-            players: [CampaignMember(id: "sample-player", name: "Sample Player")]
+            players: [CampaignMember(
+                id: "sample-player",
+                name: "Sample Player",
+                character: CampaignCharacter(id: UUID(uuidString: "00000000-0000-0000-0000-000000000001")!,
+                                             name: "Thorin", summary: "Level 1 Hill Dwarf Fighter")
+            )],
+            inventoryChanges: [
+                InventoryChange(
+                    id: UUID(uuidString: "00000000-0000-0000-0000-000000000002")!,
+                    playerID: "sample-player", itemID: "potion-of-healing", itemName: "Potion of healing",
+                    delta: 2, authorID: "sample-dm", date: Date(timeIntervalSince1970: 0)
+                )
+            ]
         )
     ]
 

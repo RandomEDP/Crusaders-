@@ -128,9 +128,21 @@ final class AppModel {
         try await campaigns.create(name: name, yourName: yourName)
     }
 
-    /// Joins a campaign by its 6-digit code. The user is listed as a player.
+    /// Joins a campaign by its 6-digit code with one of the user's saved characters. The user is listed as a player.
     @discardableResult
-    func joinCampaign(code: String, yourName: String) async throws -> Campaign {
-        try await campaigns.join(code: code, yourName: yourName)
+    func joinCampaign(code: String, yourName: String, characterID: PlayerCharacter.ID?) async throws -> Campaign {
+        try await campaigns.join(code: code, yourName: yourName, character: characterID.flatMap(character(id:)))
+    }
+
+    /// The DM adds a Library item to a player's character inventory.
+    @discardableResult
+    func addItem(_ item: EquipmentItem, quantity: Int, to playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.addItem(itemID: item.id, name: item.name, quantity: quantity, to: playerID, inCampaign: code)
+    }
+
+    /// The DM, or the player who owns the character, removes one of an item.
+    @discardableResult
+    func removeItem(_ itemID: String, from playerID: String, inCampaign code: String) async throws -> Campaign {
+        try await campaigns.removeItem(itemID: itemID, from: playerID, inCampaign: code)
     }
 }

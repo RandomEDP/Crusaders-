@@ -55,6 +55,10 @@ Item data attribution: This work includes material taken from the System Referen
 
 Campaigns > + > **Create campaign** asks for a campaign name and your name, then makes a random **6-digit join code** (for example `042 917`). Whoever creates the campaign is its **Dungeon Master**. Other players use **Join campaign**, enter the code and their name, and are listed as **Players**. Tap a campaign to see its code (with a Share button), the DM and the players. Pull down to refresh the player list.
 
+**Joining with a character.** Join campaign lists the characters saved on the phone; the player picks one (create one in Characters first). The DM sees each player's character on the Party tab.
+
+**Inventory.** Each campaign has a Party tab and an Inventory tab. On Inventory, the DM sees every player's character and can **add** Library items (with a quantity). Players see their own character's items. Both the DM and that player can **remove** items with the − button. Every add or remove is saved as its own `InventoryChange`, and the inventory is worked out from them, so a player never edits the DM's records. Changes the rules don't allow (a player adding, or removing from someone else) are ignored. In Debug, the launch argument `-dmTestCampaign` starts you as DM of "Test Table" (code `654321`) with one player, for UI tests.
+
 Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
 
 **Sharing between phones needs iCloud.** While iCloud is switched off (see Library items), campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
@@ -64,9 +68,10 @@ Each phone gets a random member id on first launch (it becomes the Sign in with 
 In the CloudKit Dashboard, public database, after the container from the Library items setup exists:
 
 1. Create record type `Campaign` with fields `name`, `joinCode`, `dmID`, `dmName` (all String). Records are named `campaign-<code>`, which keeps codes unique.
-2. Create record type `CampaignPlayer` with fields `joinCode` (String, **queryable**), `memberID` (String), `name` (String).
-3. Security for both: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record, so nobody edits anyone else's.
-4. Deploy the schema to Production.
+2. Create record type `CampaignPlayer` with fields `joinCode` (String, **queryable**), `memberID`, `name`, `characterID`, `characterName`, `characterSummary` (all String).
+3. Create record type `InventoryChange` with fields `joinCode` (String, **queryable**), `playerID`, `itemID`, `itemName`, `authorID` (String), `delta` (Int64), `changedAt` (Date/Time).
+4. Security for all three: World can read, Authenticated (any iCloud user) can create, only the record's creator can write. Each player creates their own `CampaignPlayer` record and each inventory change is a new record, so nobody edits anyone else's.
+5. Deploy the schema to Production.
 
 ## Saving characters
 

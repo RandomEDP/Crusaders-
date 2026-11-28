@@ -31,6 +31,12 @@ extension CampaignError: LocalizedError {
         case .alreadyJoined: return "You're already in that campaign."
         case .codeTaken: return "Couldn't find a free join code. Please try again."
         case .directoryUnavailable: return "Couldn't reach iCloud. Check you're online and signed in to iCloud, then try again."
+        case .noCharacterSelected: return "Pick one of your characters to join with."
+        case .onlyDungeonMasterCanAdd: return "Only the Dungeon Master can add items."
+        case .notYourInventory: return "You can only remove items from your own character."
+        case .invalidQuantity: return "Enter a quantity of 1 or more."
+        case .itemNotInInventory: return "That item isn't in the inventory any more."
+        case .playerNotFound: return "That player isn't in this campaign."
         }
     }
 }

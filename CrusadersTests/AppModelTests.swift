@@ -39,8 +39,12 @@ final class AppModelTests: XCTestCase {
         let shared = InMemoryCampaignDirectory()
         let dm = makeModel(directory: shared)
         let friend = makeModel(directory: shared)
+        var draft = CharacterDraft.starter(catalog: friend.rules)
+        draft.name = "Thalia"
+        let hero = try friend.createCharacter(from: draft)
         let campaign = try await dm.createCampaign(name: "Tomb", yourName: "Dana")
-        let joined = try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria")
+        let joined = try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria", characterID: hero.id)
+        XCTAssertEqual(joined.player(id: friend.campaigns.me.id)?.character?.name, "Thalia")
         XCTAssertEqual(joined.name, "Tomb")
         XCTAssertEqual(friend.campaigns.role(in: joined), .player)
         XCTAssertEqual(joined.dungeonMaster.name, "Dana")
@@ -50,9 +54,56 @@ final class AppModelTests: XCTestCase {
     func testDefaultCampaignsWithoutICloudOfferTheSampleAndArentShared() async throws {
         let manager = CampaignManager.makeDefault(arguments: ["-inMemoryCampaigns"], cloudKitEnabled: false)
         XCTAssertFalse(manager.isShared)
-        let joined = try await manager.join(code: InMemoryCampaignDirectory.sampleCode, yourName: "Aria")
+        let joined = try await manager.join(code: InMemoryCampaignDirectory.sampleCode, yourName: "Aria",
+                                            character: PlayerCharacter(name: "Thalia", race: "Human", characterClass: "Fighter"))
         XCTAssertEqual(joined.name, "The Sunken Citadel")
         XCTAssertEqual(manager.role(in: joined), .player)
+    }
+
+    func testDMGivesAnItemAndThePlayerUsesIt() async throws {
+        let shared = InMemoryCampaignDirectory()
+        let dm = makeModel(directory: shared)
+        let friend = makeModel(directory: shared)
+        var draft = CharacterDraft.starter(catalog: friend.rules)
+        draft.name = "Thalia"
+        let hero = try friend.createCharacter(from: draft)
+        let campaign = try await dm.createCampaign(name: "Tomb", yourName: "Dana")
+        try await friend.joinCampaign(code: campaign.joinCode, yourName: "Aria", characterID: hero.id)
+        await dm.campaigns.refresh()
+
+        let potion = try XCTUnwrap(dm.itemLibrary.catalog.item(id: "potion-of-healing"))
+        let playerID = friend.campaigns.me.id
+        try await dm.addItem(potion, quantity: 2, to: playerID, inCampaign: campaign.joinCode)
+        await friend.campaigns.refresh()
+        try await friend.removeItem("potion-of-healing", from: playerID, inCampaign: campaign.joinCode)
+        XCTAssertEqual(friend.campaigns.campaign(code: campaign.joinCode)?.inventory(of: playerID).first?.quantity, 1)
+        do {
+            try await friend.addItem(potion, quantity: 1, to: playerID, inCampaign: campaign.joinCode)
+            XCTFail("players can't add")
+        } catch {
+            XCTAssertEqual(error as? CampaignError, .onlyDungeonMasterCanAdd)
+        }
+    }
+
+    func testDMTestCampaignLaunchArgument() {
+        let manager = CampaignManager.makeDefault(arguments: ["-dmTestCampaign"], cloudKitEnabled: false)
+        let campaign = manager.campaigns.first
+        XCTAssertEqual(campaign?.name, "Test Table")
+        XCTAssertEqual(campaign.flatMap { manager.role(in: $0) }, .dungeonMaster)
+        XCTAssertEqual(campaign?.players.first?.character?.name, "Thorin")
+    }
+
+    func testCloudKitInventoryAndCharacterRecordsRoundTrip() {
+        let change = InventoryChange(playerID: "p1", itemID: "rope", itemName: "Rope", delta: -1, authorID: "p1",
+                                     date: Date(timeIntervalSince1970: 1_000))
+        let record = CloudKitCampaignDirectory.inventoryRecord(change, code: "042917")
+        XCTAssertEqual(record.recordType, "InventoryChange")
+        XCTAssertEqual(record["joinCode"] as? String, "042917")
+        XCTAssertEqual(CloudKitCampaignDirectory.inventoryChange(from: record), change)
+
+        let player = CampaignMember(id: "p1", name: "Aria",
+                                    character: CampaignCharacter(id: UUID(), name: "Thalia", summary: "Level 1 Human Fighter"))
+        XCTAssertEqual(CloudKitCampaignDirectory.player(from: CloudKitCampaignDirectory.playerRecord(player, code: "042917")), player)
     }
 
     func testCloudKitCampaignRecordsRoundTrip() {
