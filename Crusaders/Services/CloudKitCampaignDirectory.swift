@@ -127,8 +127,12 @@ struct CloudKitCampaignDirectory: CampaignDirectory {
         return Campaign(name: name, joinCode: code, dungeonMaster: CampaignMember(id: dmID, name: dmName))
     }
 
+    static func playerRecordID(code: String, memberID: String) -> CKRecord.ID {
+        CKRecord.ID(recordName: "player-\(code)-\(memberID)")
+    }
+
     static func playerRecord(_ player: CampaignMember, code: String) -> CKRecord {
-        let id = CKRecord.ID(recordName: "player-\(code)-\(player.id)")
+        let id = playerRecordID(code: code, memberID: player.id)
         let record = CKRecord(recordType: playerType, recordID: id)
         record["joinCode"] = code as CKRecordValue
         record["memberID"] = player.id as CKRecordValue

@@ -1,11 +1,12 @@
 import SwiftUI
 import CrusadersKit
 
-/// One campaign, in two tabs: Party (code, DM, players and their characters) and Inventory.
+/// One campaign, in three tabs: Party (code, DM, players and their characters), Inventory and Chat.
 struct CampaignDetailView: View {
     enum Tab: String, CaseIterable, Identifiable {
         case party = "Party"
         case inventory = "Inventory"
+        case chat = "Chat"
         var id: String { rawValue }
     }
 
@@ -39,6 +40,7 @@ struct CampaignDetailView: View {
                 switch tab {
                 case .party: party(campaign, manager: manager)
                 case .inventory: inventory(campaign, manager: manager)
+                case .chat: chats(campaign, manager: manager)
                 }
             }
             .navigationTitle(campaign.name)
@@ -118,6 +120,62 @@ struct CampaignDetailView: View {
                     .foregroundStyle(Theme.inkSoft)
             }
         }
+    }
+
+    // MARK: - Chat
+
+    /// The party chat, then the private chats this person can see (one per player for the DM; their own for a player).
+    @ViewBuilder
+    private func chats(_ campaign: Campaign, manager: CampaignManager) -> some View {
+        let me = manager.me
+        let channels = campaign.chatChannels(for: me.id)
+        ThemedSection {
+            ForEach(channels.filter { $0 == .party }) { channel in
+                chatRow(channel, campaign: campaign, me: me)
+            }
+        } header: {
+            Text("Everyone")
+        }
+        ThemedSection {
+            let whispers = channels.filter { $0 != .party }
+            if whispers.isEmpty {
+                Text("No players yet. Once players join, you can message each of them privately here.")
+                    .foregroundStyle(Theme.inkSoft)
+            }
+            ForEach(whispers) { channel in
+                chatRow(channel, campaign: campaign, me: me)
+            }
+        } header: {
+            Text("Private")
+        } footer: {
+            Text(manager.role(in: campaign) == .dungeonMaster
+                 ? "Each private chat is only between you and that player. Use Narrate for things only they experience."
+                 : "Only you and the Dungeon Master can read your private chat.")
+        }
+        .task(id: campaign.players.count) {
+            for channel in channels {
+                await model.chat.load(channel, campaign: campaign, viewer: me)
+            }
+        }
+    }
+
+    private func chatRow(_ channel: ChatChannel, campaign: Campaign, me: CampaignMember) -> some View {
+        NavigationLink {
+            CampaignChatView(code: campaign.joinCode, channel: channel)
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                Label(campaign.chatTitle(channel, for: me.id),
+                      systemImage: channel == .party ? "person.3" : "lock")
+                    .font(.serifBold(.headline))
+                if let last = model.chat.messages(in: channel, campaign: campaign, viewer: me).last {
+                    Text(last.isNarration ? last.text : "\(last.senderName): \(last.text)")
+                        .font(.serif(.subheadline))
+                        .foregroundStyle(Theme.inkSoft)
+                        .lineLimit(1)
+                }
+            }
+        }
+        .accessibilityIdentifier("chat.channel.\(channel.id)")
     }
 
     // MARK: - Inventory

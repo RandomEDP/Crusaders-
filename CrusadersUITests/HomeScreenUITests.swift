@@ -275,6 +275,51 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["No items yet."].waitForExistence(timeout: 5))
     }
 
+    func testDMChatsWithThePartyAndWhispersToOnePlayer() {
+        app.terminate()
+        app.launchArguments = ["-resetCharacters", "-dmTestCampaign"]
+        app.launch()
+
+        app.buttons["home.campaigns"].tap()
+        let row = campaignRow(named: "Test Table")
+        XCTAssertTrue(row.waitForExistence(timeout: 5))
+        row.tap()
+        let chatTab = app.buttons["Chat"]
+        XCTAssertTrue(chatTab.waitForExistence(timeout: 5))
+        chatTab.tap()
+
+        // Party chat.
+        let party = app.buttons["chat.channel.party"]
+        XCTAssertTrue(party.waitForExistence(timeout: 5))
+        party.tap()
+        XCTAssertTrue(app.staticTexts["No messages yet."].waitForExistence(timeout: 5))
+        sendChat("Welcome to the table!")
+        XCTAssertTrue(app.staticTexts["Welcome to the table!"].waitForExistence(timeout: 5))
+        app.navigationBars.buttons.element(boundBy: 0).tap()
+
+        // Private chat with Sam's character: narration only Sam sees.
+        let whisper = app.buttons["chat.channel.whisper-ui-test-player"]
+        XCTAssertTrue(whisper.waitForExistence(timeout: 5))
+        whisper.tap()
+        XCTAssertTrue(element(labelContaining: "Only you and Sam can read this").waitForExistence(timeout: 5))
+        let narrate = app.buttons["chat.narrate"]
+        XCTAssertTrue(narrate.waitForExistence(timeout: 5))
+        narrate.tap()
+        sendChat("You hear a voice in your head call out your name.")
+        let narration = app.staticTexts["chat.narration"]
+        XCTAssertTrue(narration.waitForExistence(timeout: 5))
+        XCTAssertEqual(narration.label, "You hear a voice in your head call out your name.")
+        XCTAssertFalse(app.staticTexts["Welcome to the table!"].exists, "party messages don't show in a private chat")
+    }
+
+    private func sendChat(_ text: String) {
+        let field = app.textFields["chat.field"]
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        field.tap()
+        field.typeText(text)
+        app.buttons["chat.send"].tap()
+    }
+
     /// Back to the home screen from one level down.
     private func goHome() {
         app.navigationBars.buttons.element(boundBy: 0).tap()
