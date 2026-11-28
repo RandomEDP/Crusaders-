@@ -150,7 +150,9 @@ extension CharacterSheet {
                 name: "Unarmed strike", hand: nil,
                 attackBonus: strength + proficiencyBonus,
                 damage: Self.damageText(dice: "1", modifier: strength, type: .bludgeoning),
-                notes: armourDisadvantageNotes + effectAttackNotes
+                notes: armourDisadvantageNotes + effectAttackNotes,
+                damageDice: DamageDice(terms: [], bonus: 1 + strength),
+                damageType: .bludgeoning
             ))
         }
         return list
@@ -209,7 +211,12 @@ extension CharacterSheet {
         } else if let note = gear.traits.attackNote {
             notes.append(note)
         }
-        return WeaponAttack(name: gear.name, hand: hand, attackBonus: attackBonus, damage: damage, notes: notes)
+        let ammunition = AmmoKind.fired(by: gear)
+        if let ammunition { notes.append("Uses 1 of your \(ammunition.plural) each attack") }
+        let damageDice = damage == "No damage" ? nil
+            : DamageDice(dice).map { $0.addingBonus(damageAbility + gear.attackBonus) }
+        return WeaponAttack(name: gear.name, hand: hand, attackBonus: attackBonus, damage: damage, notes: notes,
+                            damageDice: damageDice, damageType: weapon.damageType, ammunition: ammunition)
     }
 
     /// "1d8 + 3 slashing", "1d4 − 1 piercing", "2d6 slashing".

@@ -45,6 +45,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
     public var lore: CharacterLore
     /// The sheet as printed by another app (D&D Beyond), for imported characters. Nil for characters made here.
     public var importedSheet: ImportedSheet?
+    /// Spell slots spent since the last rest, for spell levels 1st to 9th (see `spendSpellSlot`).
+    public var spellSlotsUsed: [Int]
 
     public init(
         id: UUID = UUID(),
@@ -72,7 +74,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         toolProficiencies: [String] = [],
         resources: [CharacterResource] = [],
         lore: CharacterLore = CharacterLore(),
-        importedSheet: ImportedSheet? = nil
+        importedSheet: ImportedSheet? = nil,
+        spellSlotsUsed: [Int] = []
     ) {
         self.id = id
         self.name = name
@@ -100,6 +103,7 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         self.resources = resources
         self.lore = lore
         self.importedSheet = importedSheet
+        self.spellSlotsUsed = Array((spellSlotsUsed.map { max(0, $0) } + Array(repeating: 0, count: 9)).prefix(9))
     }
 
     enum CodingKeys: String, CodingKey {
@@ -108,7 +112,7 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         case improvementPoints, skillProficiencies, experiencePoints, spellIDs
         case hitPointMethod, hitPointRolls, importedSheet
         case background, alignment, languages, feats, armorProficiencies, weaponProficiencies, toolProficiencies
-        case resources, lore
+        case resources, lore, spellSlotsUsed
     }
 
     /// Reads saved characters. Anything missing gets a default, so characters saved by
@@ -143,7 +147,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
             resources: try container.decodeIfPresent([CharacterResource].self, forKey: .resources) ?? [],
             lore: (try? container.decodeIfPresent(CharacterLore.self, forKey: .lore)) ?? CharacterLore(),
             // A sheet that can't be read (saved by a newer version) never stops the character loading.
-            importedSheet: (try? container.decodeIfPresent(ImportedSheet.self, forKey: .importedSheet)) ?? nil
+            importedSheet: (try? container.decodeIfPresent(ImportedSheet.self, forKey: .importedSheet)) ?? nil,
+            spellSlotsUsed: (try? container.decodeIfPresent([Int].self, forKey: .spellSlotsUsed)) ?? []
         )
     }
 

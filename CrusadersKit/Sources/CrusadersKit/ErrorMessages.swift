@@ -103,3 +103,18 @@ extension PDFSheetError: LocalizedError {
         }
     }
 }
+
+extension ActionError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .noSpellSlot(let level):
+            return "No \(Spell.ordinal(level))-level spell slots left. Take a rest to get them back."
+        case .noAmmunition(let kind):
+            return "No \(kind.plural) left. Ask the Dungeon Master for more."
+        case .noUsesLeft(let name):
+            return "No uses of \(name) left. Take a rest to get them back."
+        case .ammunitionNeedsCampaign:
+            return "Ammunition comes from a campaign inventory. Join a campaign with this character to fire it."
+        }
+    }
+}

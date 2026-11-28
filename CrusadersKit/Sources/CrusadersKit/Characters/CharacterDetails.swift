@@ -158,10 +158,14 @@ extension PlayerCharacter {
         resources[index].used -= 1
     }
 
-    /// A long rest brings every use back; a short rest only those that recharge on one.
+    /// A long rest brings every use and spell slot back; a short rest only uses that recharge on one,
+    /// and a Warlock's Pact Magic slots.
     public mutating func rest(long: Bool) {
         for index in resources.indices where long || resources[index].rechargesOnShortRest {
             resources[index].used = 0
+        }
+        if long || usesPactMagic {
+            spellSlotsUsed = Array(repeating: 0, count: 9)
         }
     }
 
