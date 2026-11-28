@@ -75,11 +75,12 @@ final class HomeScreenUITests: XCTestCase {
             app.swipeUp()
         }
         edit.tap()
-        let languages = app.textFields["details.languages"]
+        // Multi-line fields show up as text views, so look them up by identifier only.
+        let languages = app.descendants(matching: .any)["details.languages"]
         XCTAssertTrue(languages.waitForExistence(timeout: 5))
         languages.tap()
         languages.typeText("Common, Elvish")
-        let feats = app.textFields["details.feats"]
+        let feats = app.descendants(matching: .any)["details.feats"]
         feats.tap()
         feats.typeText("Alert")
         app.buttons["details.save"].tap()
@@ -93,7 +94,7 @@ final class HomeScreenUITests: XCTestCase {
         }
         lore.tap()
         XCTAssertTrue(app.navigationBars["Lore"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.textFields["lore.Religion"].exists || app.textViews["lore.Religion"].exists)
+        XCTAssertTrue(app.descendants(matching: .any)["lore.Religion"].waitForExistence(timeout: 5))
     }
 
     func testAddingExperienceShowsLevelUpUnlocks() {
