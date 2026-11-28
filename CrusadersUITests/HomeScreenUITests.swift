@@ -51,6 +51,20 @@ final class HomeScreenUITests: XCTestCase {
         XCTAssertTrue(characterRow(named: "Aria").waitForExistence(timeout: 5))
     }
 
+    func testImportFromDDBeyondOpensTheFilePicker() {
+        app.buttons["home.characters"].tap()
+        XCTAssertTrue(app.navigationBars["Characters"].waitForExistence(timeout: 5))
+        let importButton = app.buttons["characters.import"]
+        XCTAssertTrue(importButton.waitForExistence(timeout: 5))
+        XCTAssertEqual(importButton.label, "Import from D&D Beyond")
+        importButton.tap()
+        // The system file picker (only PDFs) appears; cancelling goes back to the list.
+        let cancel = app.buttons["Cancel"]
+        XCTAssertTrue(cancel.waitForExistence(timeout: 10))
+        cancel.tap()
+        XCTAssertTrue(app.navigationBars["Characters"].waitForExistence(timeout: 5))
+    }
+
     func testAddingExperienceShowsLevelUpUnlocks() {
         createCharacter(named: "Bram")
         characterRow(named: "Bram").tap()

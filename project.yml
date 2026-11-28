@@ -37,6 +37,12 @@ targets:
         UIBackgroundModes: [remote-notification]
         # Private DM-to-player chats are CloudKit shares (see CloudKitChatService).
         CKSharingSupported: true
+        # Share → Crusaders for character sheet PDFs (D&D Beyond, Files). Copies the file in; never edits it in place.
+        CFBundleDocumentTypes:
+          - CFBundleTypeName: PDF character sheet
+            LSHandlerRank: Alternate
+            LSItemContentTypes: [com.adobe.pdf]
+        LSSupportsOpeningDocumentsInPlace: false
         # Parchment theme: always light, with bundled OFL fonts (Crusaders/Resources/Fonts).
         UIUserInterfaceStyle: Light
         UIAppFonts:
@@ -61,6 +67,9 @@ targets:
     platform: iOS
     sources:
       - CrusadersTests
+      # The D&D Beyond sample sheet, shared with the CrusadersKit tests.
+      - path: CrusadersKit/Tests/CrusadersKitTests/Fixtures/ddb-ominakna-thirke-2024.pdf
+        buildPhase: resources
     dependencies:
       - target: Crusaders
     settings:

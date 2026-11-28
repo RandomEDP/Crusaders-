@@ -30,6 +30,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
     public var hitPointMethod: HitPointMethod
     /// Hit die rolls for levels 2, 3, 4… when `hitPointMethod` is `.rolled`. Level 1 always takes the full die.
     public var hitPointRolls: [Int]
+    /// The sheet as printed by another app (D&D Beyond), for imported characters. Nil for characters made here.
+    public var importedSheet: ImportedSheet?
 
     public init(
         id: UUID = UUID(),
@@ -47,7 +49,8 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         experiencePoints: Int? = nil,
         spellIDs: Set<String> = [],
         hitPointMethod: HitPointMethod = .fixed,
-        hitPointRolls: [Int] = []
+        hitPointRolls: [Int] = [],
+        importedSheet: ImportedSheet? = nil
     ) {
         self.id = id
         self.name = name
@@ -65,13 +68,14 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
         self.spellIDs = spellIDs
         self.hitPointMethod = hitPointMethod
         self.hitPointRolls = hitPointRolls
+        self.importedSheet = importedSheet
     }
 
     enum CodingKeys: String, CodingKey {
         case id, name, race, characterClass, level
         case raceID, subraceID, classID, baseAbilityScores, racialBonusChoices
         case improvementPoints, skillProficiencies, experiencePoints, spellIDs
-        case hitPointMethod, hitPointRolls
+        case hitPointMethod, hitPointRolls, importedSheet
     }
 
     /// Reads saved characters. Anything missing gets a default, so characters saved by
@@ -95,9 +99,13 @@ public struct PlayerCharacter: Identifiable, Hashable, Codable, Sendable {
             experiencePoints: try container.decodeIfPresent(Int.self, forKey: .experiencePoints),
             spellIDs: try container.decodeIfPresent(Set<String>.self, forKey: .spellIDs) ?? [],
             hitPointMethod: try container.decodeIfPresent(HitPointMethod.self, forKey: .hitPointMethod) ?? .fixed,
-            hitPointRolls: try container.decodeIfPresent([Int].self, forKey: .hitPointRolls) ?? []
+            hitPointRolls: try container.decodeIfPresent([Int].self, forKey: .hitPointRolls) ?? [],
+            // A sheet that can't be read (saved by a newer version) never stops the character loading.
+            importedSheet: (try? container.decodeIfPresent(ImportedSheet.self, forKey: .importedSheet)) ?? nil
         )
     }
+
+    public var isImported: Bool { importedSheet != nil }
 
     /// e.g. "Level 3 Elf Wizard"
     public var summary: String {
@@ -193,6 +201,16 @@ public struct CharacterRoster: Equatable, Sendable {
     @discardableResult
     public mutating func add(_ draft: CharacterDraft, catalog: RulesCatalog = .srd) throws -> PlayerCharacter {
         let character = try draft.build(catalog: catalog)
+        characters.append(character)
+        return character
+    }
+
+    /// Adds a character read from another app's sheet (D&D Beyond), after the player has checked it.
+    @discardableResult
+    public mutating func add(imported: SheetImport, catalog: RulesCatalog = .srd) throws -> PlayerCharacter {
+        var character = imported.makeCharacter(catalog: catalog)
+        character.name = character.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !character.name.isEmpty else { throw CharacterError.emptyName }
         characters.append(character)
         return character
     }

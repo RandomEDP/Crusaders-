@@ -1,9 +1,11 @@
 import SwiftUI
+import UniformTypeIdentifiers
 import CrusadersKit
 
 struct CharactersView: View {
     @Environment(AppModel.self) private var model
     @State private var isCreating = false
+    @State private var isPickingPDF = false
 
     var body: some View {
         Group {
@@ -11,7 +13,7 @@ struct CharactersView: View {
                 ContentUnavailableView(
                     "No characters yet",
                     systemImage: "person.crop.circle.badge.plus",
-                    description: Text("Tap + to create your first hero.")
+                    description: Text("Tap + to create your first hero, or import one from D&D Beyond.")
                 )
             } else {
                 List {
@@ -45,9 +47,24 @@ struct CharactersView: View {
                 }
                 .accessibilityIdentifier("characters.add")
             }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    isPickingPDF = true
+                } label: {
+                    Label("Import from D&D Beyond", systemImage: "square.and.arrow.down")
+                }
+                .accessibilityIdentifier("characters.import")
+            }
         }
         .sheet(isPresented: $isCreating) {
             CharacterCreationView()
+        }
+        // Pick a character sheet PDF exported from D&D Beyond. It's read on the phone; nothing is uploaded.
+        .fileImporter(isPresented: $isPickingPDF, allowedContentTypes: [UTType.pdf]) { result in
+            switch result {
+            case .success(let url): model.openSheetPDF(at: url)
+            case .failure(let error): model.importProblem = error.localizedDescription
+            }
         }
     }
 }

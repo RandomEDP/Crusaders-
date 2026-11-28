@@ -29,17 +29,25 @@ struct CharacterSheetView: View {
     private func content(_ sheet: CharacterSheet) -> some View {
         List {
             experienceSection(sheet)
-            if sheet.unspentImprovementPoints > 0 {
+            // Imported characters already chose their improvements and feats on D&D Beyond.
+            if sheet.unspentImprovementPoints > 0 && !sheet.character.isImported {
                 improvementSection(sheet)
             }
-            abilitiesSection(sheet)
-            combatSection(sheet)
-            effectsSection(sheet)
-            equipmentSection(sheet)
-            savingThrowsSection(sheet)
-            skillsSection(sheet)
-            spellsSection(sheet)
-            featuresSection(sheet)
+            if let imported = sheet.character.importedSheet {
+                // Imported from D&D Beyond: show its printed numbers instead of working them out again.
+                ImportedSheetSections(sheet: imported)
+                effectsSection(sheet)
+                equipmentSection(sheet)
+            } else {
+                abilitiesSection(sheet)
+                combatSection(sheet)
+                effectsSection(sheet)
+                equipmentSection(sheet)
+                savingThrowsSection(sheet)
+                skillsSection(sheet)
+                spellsSection(sheet)
+                featuresSection(sheet)
+            }
             ThemedSection {
                 Text(RulesCatalog.srdAttribution)
                     .font(.serif(.footnote))

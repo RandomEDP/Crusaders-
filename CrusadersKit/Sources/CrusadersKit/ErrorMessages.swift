@@ -94,3 +94,12 @@ extension CoinError: LocalizedError {
         }
     }
 }
+
+extension PDFSheetError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .unreadable: return "That file isn't a PDF that can be opened."
+        case .noValues: return "This PDF has no character sheet values. Export the sheet from D&D Beyond and try again."
+        }
+    }
+}
