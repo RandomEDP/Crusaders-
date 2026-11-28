@@ -35,6 +35,13 @@ targets:
         ITSAppUsesNonExemptEncryption: false
         CrusadersCloudKitEnabled: $(CLOUDKIT_ENABLED)
         UIBackgroundModes: [remote-notification]
+        # Parchment theme: always light, with bundled OFL fonts (Crusaders/Resources/Fonts).
+        UIUserInterfaceStyle: Light
+        UIAppFonts:
+          - GrenzeGotisch-SemiBold.ttf
+          - EBGaramond-Regular.ttf
+          - EBGaramond-SemiBold.ttf
+          - EBGaramond-Italic.ttf
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.randomedp.Crusaders

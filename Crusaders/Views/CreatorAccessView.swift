@@ -9,7 +9,7 @@ struct CreatorAccessView: View {
         let library = model.itemLibrary
         let status = library.creatorStatus
         List {
-            Section {
+            ThemedSection {
                 if library.isLoading {
                     ProgressView()
                 } else if status.isCreator {
@@ -21,12 +21,12 @@ struct CreatorAccessView: View {
                         .accessibilityIdentifier("creator.status.viewer")
                 }
                 if let problem = status.problem {
-                    Text(problem).font(.footnote).foregroundStyle(.secondary)
+                    Text(problem).font(.serif(.footnote)).foregroundStyle(Theme.inkSoft)
                 }
             }
 
             if let userID = status.userID {
-                Section {
+                ThemedSection {
                     Text(userID)
                         .font(.footnote.monospaced())
                         .textSelection(.enabled)
@@ -39,6 +39,7 @@ struct CreatorAccessView: View {
             }
         }
         .navigationTitle("Creator access")
+        .parchmentScreen()
         .task { await library.refresh() }
         .refreshable { await library.refresh() }
     }

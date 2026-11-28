@@ -30,6 +30,13 @@ final class HomeScreenUITests: XCTestCase {
         }
     }
 
+    func testHomeShowsTheCrusadersLogo() {
+        let logo = app.images["home.logo"]
+        XCTAssertTrue(logo.waitForExistence(timeout: 10))
+        XCTAssertEqual(logo.label, "Crusaders")
+        XCTAssertGreaterThan(logo.frame.width, 150, "logo should be big enough to read")
+    }
+
     func testCreateCharacterFromPlusButton() {
         app.buttons["home.characters"].tap()
         XCTAssertTrue(app.navigationBars["Characters"].waitForExistence(timeout: 5))

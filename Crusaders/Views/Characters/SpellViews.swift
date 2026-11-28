@@ -11,8 +11,8 @@ struct SpellRow: View {
         HStack(spacing: 12) {
             if let isKnown {
                 Image(systemName: isKnown ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(isKnown ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-                    .font(.title3)
+                    .foregroundStyle(isKnown ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.inkSoft))
+                    .font(.gothic(.title3))
             }
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 6) {
@@ -25,8 +25,8 @@ struct SpellRow: View {
                     }
                 }
                 Text([spell.subtitle, note].compactMap { $0 }.joined(separator: " · "))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.caption))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
         .accessibilityElement(children: .combine)
@@ -39,9 +39,9 @@ private struct Badge: View {
 
     var body: some View {
         Text(text)
-            .font(.caption2.bold())
+            .font(.serifBold(.caption2))
             .padding(.horizontal, 4)
-            .background(.quaternary, in: RoundedRectangle(cornerRadius: 4))
+            .background(Theme.rule.opacity(0.22), in: RoundedRectangle(cornerRadius: 4))
     }
 }
 
@@ -53,8 +53,8 @@ struct SpellDetailView: View {
 
     var body: some View {
         List {
-            Section {
-                Text(spell.subtitle).font(.headline)
+            ThemedSection {
+                Text(spell.subtitle).font(.serifBold(.headline))
                 LabeledContent("Casting time", value: spell.castingTime)
                 LabeledContent("Range", value: spell.range)
                 LabeledContent("Components", value: componentText)
@@ -64,18 +64,19 @@ struct SpellDetailView: View {
                 }
                 LabeledContent("Classes", value: classNames)
             }
-            Section("Description") {
+            ThemedSection("Description") {
                 Text(spell.description)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let higherLevel = spell.higherLevel {
-                Section("At higher levels") {
+                ThemedSection("At higher levels") {
                     Text(higherLevel)
                         .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
         .navigationTitle(spell.name)
+        .parchmentScreen()
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 if let characterID, let character = model.character(id: characterID) {
@@ -125,6 +126,7 @@ struct SpellPickerView: View {
                 }
             }
             .navigationTitle("Spells")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search spells")
             .toolbar {
@@ -157,7 +159,7 @@ struct SpellPickerView: View {
         let shown = spells(sheet, scope: current)
         let levels = Array(Set(shown.map(\.level))).sorted()
         return List {
-            Section {
+            ThemedSection {
                 Picker("Show", selection: Binding(get: { current }, set: { scope = $0 })) {
                     ForEach(Scope.allCases) { scope in
                         Text(scope.rawValue).tag(scope)
@@ -173,10 +175,11 @@ struct SpellPickerView: View {
             }
             if shown.isEmpty {
                 Text(current == .all ? "No spells match." : "Your class can't cast any spells at this level yet. Try All spells.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSoft)
+                    .parchmentRow()
             }
             ForEach(levels, id: \.self) { level in
-                Section(Spell.label(forLevel: level)) {
+                ThemedSection(Spell.label(forLevel: level)) {
                     ForEach(shown.filter { $0.level == level }) { spell in
                         PickerRow(spell: spell, characterID: characterID, isKnown: sheet.character.spellIDs.contains(spell.id))
                     }
@@ -200,7 +203,7 @@ private struct PickerRow: View {
                 SpellRow(spell: spell, isKnown: isKnown)
             }
             .buttonStyle(.borderless)
-            .foregroundStyle(.primary)
+            .foregroundStyle(Theme.ink)
             .accessibilityIdentifier("spells.row.\(spell.id)")
             Spacer()
             NavigationLink {

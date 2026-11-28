@@ -24,27 +24,30 @@ struct CampaignsView: View {
                 List {
                     if let problem = manager.refreshError {
                         Label(problem, systemImage: "exclamationmark.icloud")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(.serif(.footnote))
+                            .foregroundStyle(Theme.inkSoft)
+                            .parchmentRow()
                     }
                     ForEach(manager.campaigns) { campaign in
                         NavigationLink {
                             CampaignDetailView(code: campaign.joinCode)
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(campaign.name).font(.headline)
+                                Text(campaign.name).font(.serifBold(.headline))
                                 Text("\(manager.role(in: campaign)?.label ?? "Player") · Code \(JoinCode.display(campaign.joinCode))")
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(.serif(.subheadline))
+                                    .foregroundStyle(Theme.inkSoft)
                             }
                         }
                         .accessibilityIdentifier("campaigns.row")
+                        .parchmentRow()
                     }
                 }
                 .refreshable { await manager.refresh() }
             }
         }
         .navigationTitle("Campaigns")
+        .parchmentScreen()
         .task { await manager.refresh() }
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
@@ -85,15 +88,15 @@ struct CampaignFormView: View {
         NavigationStack {
             Form {
                 if let created {
-                    Section {
+                    ThemedSection {
                         VStack(spacing: 8) {
-                            Text("\(created.name) is ready").font(.headline)
+                            Text("\(created.name) is ready").font(.serifBold(.headline))
                             Text(JoinCode.display(created.joinCode))
-                                .font(.system(size: 44, weight: .bold, design: .monospaced))
+                                .font(.joinCode)
                                 .accessibilityIdentifier("campaignForm.createdCode")
                             Text("You're the Dungeon Master. Give this code to your players.")
-                                .font(.subheadline)
-                                .foregroundStyle(.secondary)
+                                .font(.serif(.subheadline))
+                                .foregroundStyle(Theme.inkSoft)
                                 .multilineTextAlignment(.center)
                         }
                         .frame(maxWidth: .infinity)
@@ -104,6 +107,7 @@ struct CampaignFormView: View {
                 }
             }
             .navigationTitle(mode == .create ? "Create campaign" : "Join campaign")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 if created != nil {
@@ -134,7 +138,7 @@ struct CampaignFormView: View {
 
     @ViewBuilder
     private var fields: some View {
-        Section {
+        ThemedSection {
             if mode == .create {
                 TextField("Campaign name", text: $text)
                     .textInputAutocapitalization(.words)
@@ -142,7 +146,7 @@ struct CampaignFormView: View {
             } else {
                 TextField("6-digit code", text: $text)
                     .keyboardType(.numberPad)
-                    .font(.system(.title2, design: .monospaced))
+                    .font(.serifBold(.title2).monospacedDigit())
                     .accessibilityIdentifier("campaignForm.field")
             }
             TextField("Your name", text: $yourName)
@@ -155,10 +159,10 @@ struct CampaignFormView: View {
                  : "Ask your Dungeon Master for the 6-digit code. You'll join as a player.")
         }
         if mode == .join {
-            Section("Your character") {
+            ThemedSection("Your character") {
                 if model.roster.characters.isEmpty {
                     Text("Create a character in Characters first, then come back to join.")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.inkSoft)
                         .accessibilityIdentifier("campaignForm.noCharacters")
                 }
                 ForEach(model.roster.characters) { character in
@@ -167,8 +171,8 @@ struct CampaignFormView: View {
                     } label: {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(character.name).foregroundStyle(.primary)
-                                Text(character.summary).font(.subheadline).foregroundStyle(.secondary)
+                                Text(character.name).foregroundStyle(Theme.ink)
+                                Text(character.summary).font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
                             }
                             Spacer()
                             if characterID == character.id {
@@ -183,7 +187,7 @@ struct CampaignFormView: View {
         }
         if let errorMessage {
             Text(errorMessage)
-                .foregroundStyle(.red)
+                .foregroundStyle(Theme.crimson)
                 .accessibilityIdentifier("campaignForm.error")
         }
     }

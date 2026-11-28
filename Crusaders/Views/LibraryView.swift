@@ -6,7 +6,7 @@ struct LibraryView: View {
 
     var body: some View {
         List {
-            Section {
+            ThemedSection {
                 NavigationLink {
                     ItemsView()
                 } label: {
@@ -14,7 +14,7 @@ struct LibraryView: View {
                         HStack {
                             Text("Items")
                             Spacer()
-                            Text("\(model.itemLibrary.catalog.baseItems.count)").foregroundStyle(.secondary)
+                            Text("\(model.itemLibrary.catalog.baseItems.count)").foregroundStyle(Theme.inkSoft)
                         }
                     } icon: {
                         Image(systemName: "shippingbox")
@@ -25,14 +25,14 @@ struct LibraryView: View {
                 Text("Weapons, armour, ammunition, potions, gear and tools.")
             }
 
-            Section {
+            ThemedSection {
                 ForEach(model.libraryCategories) { category in
                     NavigationLink(value: category) {
                         Label {
                             HStack {
                                 Text(category.name)
                                 Spacer()
-                                Text("\(category.items.count)").foregroundStyle(.secondary)
+                                Text("\(category.items.count)").foregroundStyle(Theme.inkSoft)
                             }
                         } icon: {
                             Image(systemName: category.systemImage)
@@ -42,7 +42,7 @@ struct LibraryView: View {
                 }
             }
 
-            Section {
+            ThemedSection {
                 NavigationLink {
                     CreatorAccessView()
                 } label: {
@@ -52,6 +52,7 @@ struct LibraryView: View {
             }
         }
         .navigationTitle("Library")
+        .parchmentScreen()
         .navigationDestination(for: LibraryCategory.self) { category in
             LibraryCategoryView(category: category)
         }
@@ -65,13 +66,15 @@ struct LibraryCategoryView: View {
     var body: some View {
         List(category.items(matching: query)) { item in
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.name).font(.headline)
-                Text(item.summary).font(.subheadline).foregroundStyle(.secondary)
-                Text("by \(item.creator)").font(.caption).foregroundStyle(.tertiary)
+                Text(item.name).font(.serifBold(.headline))
+                Text(item.summary).font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
+                Text("by \(item.creator)").font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
             }
+            .parchmentRow()
         }
         .searchable(text: $query)
         .navigationTitle(category.name)
+        .parchmentScreen()
     }
 }
 
