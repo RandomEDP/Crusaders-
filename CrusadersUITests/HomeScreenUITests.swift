@@ -86,8 +86,10 @@ final class HomeScreenUITests: XCTestCase {
         // Fighters can't cast, so the picker opens on All spells. Fire Bolt is among the first cantrips,
         // but bigger text can push it below the fold, and the list only builds rows that are on screen.
         let row = app.buttons["spells.row.fire-bolt"]
-        for _ in 0..<10 where !(row.exists && row.isHittable) {
-            app.swipeUp()
+        // Short drags rather than swipes: a swipe flings the list straight past the row.
+        for _ in 0..<15 where !(row.exists && row.isHittable) {
+            let from = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+            from.press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.55)))
         }
         XCTAssertTrue(row.waitForExistence(timeout: 5))
         row.tap()
