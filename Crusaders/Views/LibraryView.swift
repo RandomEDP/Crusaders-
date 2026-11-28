@@ -26,6 +26,25 @@ struct LibraryView: View {
             }
 
             ThemedSection {
+                NavigationLink {
+                    CreaturesView()
+                } label: {
+                    Label {
+                        HStack {
+                            Text("Creatures")
+                            Spacer()
+                            Text("\(model.creatureLibrary.catalog.count)").foregroundStyle(Theme.inkSoft)
+                        }
+                    } icon: {
+                        Image(systemName: "pawprint")
+                    }
+                }
+                .accessibilityIdentifier("library.creatures")
+            } footer: {
+                Text("Monsters, beasts and people to fight or befriend, with full stat blocks.")
+            }
+
+            ThemedSection {
                 ForEach(model.libraryCategories) { category in
                     NavigationLink(value: category) {
                         Label {

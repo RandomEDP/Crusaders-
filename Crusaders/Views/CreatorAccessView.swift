@@ -1,7 +1,7 @@
 import SwiftUI
 import CrusadersKit
 
-/// Shows whether this iCloud account can edit library items, and the ID needed to be added as a creator.
+/// Shows whether this iCloud account can edit library items and creatures, and the ID needed to be added as a creator.
 struct CreatorAccessView: View {
     @Environment(AppModel.self) private var model
 
@@ -13,7 +13,7 @@ struct CreatorAccessView: View {
                 if library.isLoading {
                     ProgressView()
                 } else if status.isCreator {
-                    Label("You can edit library items", systemImage: "checkmark.seal.fill")
+                    Label("You can add and edit library items and creatures", systemImage: "checkmark.seal.fill")
                         .foregroundStyle(.green)
                         .accessibilityIdentifier("creator.status.creator")
                 } else {
@@ -40,7 +40,12 @@ struct CreatorAccessView: View {
         }
         .navigationTitle("Creator access")
         .parchmentScreen()
-        .task { await library.refresh() }
-        .refreshable { await library.refresh() }
+        .task { await refresh() }
+        .refreshable { await refresh() }
+    }
+
+    private func refresh() async {
+        await model.itemLibrary.refresh()
+        await model.creatureLibrary.refresh()
     }
 }

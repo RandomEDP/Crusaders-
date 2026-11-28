@@ -187,8 +187,9 @@ final class AppModelTests: XCTestCase {
         XCTAssertGreaterThan(library.catalog.items.count, 250)
     }
 
-    func testThisBuildHasICloudSwitchedOff() {
-        XCTAssertFalse(ItemLibrary.cloudKitEnabledInBuild)
+    func testThisBuildHasICloudSwitchedOn() {
+        // The container exists, so builds are signed for iCloud. Debug builds still only use it with -useCloudKit.
+        XCTAssertTrue(ItemLibrary.cloudKitEnabledInBuild)
     }
 
     func testCloudKitRecordEncodingRoundTrips() throws {

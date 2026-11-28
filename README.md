@@ -35,7 +35,7 @@ Library > Items holds every weapon, armour, ammunition, potion, adventuring gear
 
 The app's creator can change any characteristic of an item (name, cost, weight, rarity, damage, properties, range, AC, Strength, stealth, description) from the item's **Edit** button. Edits are saved to the CloudKit public database, so every player gets them. **Reset to SRD values** removes an edit.
 
-**iCloud is currently switched off** (`CLOUDKIT_ENABLED: NO` in `project.yml`) until the container below exists, so builds sign without it. While it's off, items are view-only in TestFlight and Library > Creator access says so. To switch it on after the setup below, set `CLOUDKIT_ENABLED: YES` and add `CODE_SIGN_ENTITLEMENTS: Crusaders/Crusaders.entitlements` in `project.yml`.
+**iCloud is switched on** (`CLOUDKIT_ENABLED: YES` and `CODE_SIGN_ENTITLEMENTS: Crusaders/Crusaders.entitlements` in `project.yml`), since the container below was set up on 2026-11-28. Setting `CLOUDKIT_ENABLED: NO` and removing the entitlements line turns it off again: items become view-only in TestFlight and Library > Creator access says so.
 
 With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in memory so CI runs without signing. In Debug, add the launch argument `-creatorMode` to try creator tools, or `-useCloudKit` to talk to iCloud from a signed build.
 
@@ -50,6 +50,31 @@ With iCloud on, Release builds (TestFlight) use it. Debug builds keep edits in m
 5. Deploy the schema to Production (TestFlight uses the Production environment).
 
 Item data attribution: This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
+## Library creatures
+
+Library > Creatures holds all 334 monsters, beasts and NPCs from the SRD 5.1 with full stat blocks (AC, hit points, speed, ability scores, saves, skills, resistances, senses, languages, challenge rating with XP, traits, actions, reactions and legendary actions). They sit under collapsible headers by type (Aberrations, Beasts, Dragons...). Search by name, type, subtype, or challenge rating such as `CR 1/4`.
+
+The built-in list is `CrusadersKit/Sources/CrusadersKit/Resources/srd-creatures.json`, generated from the [5e-bits/5e-database](https://github.com/5e-bits/5e-database) monsters JSON with `python3 scripts/srd/convert_creatures.py <5e-database>/src/2014/en/5e-SRD-Monsters.json CrusadersKit/Sources/CrusadersKit/Resources/srd-creatures.json`. Don't edit it by hand. Monsters outside the SRD (for example from the Monster Manual only, Volo's or Mordenkainen's) are copyrighted and aren't included; the creator can add their own instead.
+
+### Creator tools
+
+The creator (the same creator list as Library items) gets:
+
+- A **+** button on Library > Creatures to add a new creature, with every part of the stat block, and any number of traits, actions, reactions and legendary actions.
+- An **Edit** button on every creature. **Reset to SRD stats** removes edits to an SRD creature; **Delete creature** removes one the creator added.
+
+Rules (validation, who can edit) are in `CrusadersKit/Sources/CrusadersKit/Creatures` and are unit tested. Added creatures are marked with a star, edited ones with a pencil.
+
+Creatures follow the same iCloud switch as items: in TestFlight they sync through iCloud, and only users on the Creator list get the creator tools; in Debug, `-creatorMode` turns them on (changes stay in memory).
+
+### iCloud setup for creatures (once, by the Apple account owner)
+
+In the CloudKit Dashboard, public database, after the Library items setup:
+
+1. Create record type `CreatureEntry` with fields `creatureID` (String) and `payload` (String). Add a queryable index on `recordName`. Records are named `creature-<id>`: SRD ids like `goblin` are edits, ids starting `custom-` are creatures the creator added.
+2. Security: World can read. Only the **Creator** role can create or write (the same role as `ItemOverride`).
+3. Deploy the schema to Production.
 
 ## Campaigns
 
@@ -78,7 +103,7 @@ On Inventory, potions have a **Use** (flask) button for the player or the DM. Us
 
 Each phone gets a random member id on first launch (it becomes the Sign in with Apple / iCloud id later). The user's campaigns are saved on the phone in `campaigns.json` (Application Support). The launch argument `-inMemoryCampaigns` (used by UI tests) skips saving.
 
-**Sharing between phones needs iCloud.** While iCloud is switched off (see Library items), campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
+**Sharing between phones needs iCloud.** If iCloud is switched off (see Library items), and in Debug builds without `-useCloudKit`, campaigns stay on the phone that made them, and a sample campaign with code `123456` is there to try joining. With iCloud on, Release builds (and Debug builds with `-useCloudKit`) use the CloudKit public database through `CloudKitCampaignDirectory`.
 
 ### iCloud setup for campaigns (once, by the Apple account owner)
 
@@ -103,7 +128,7 @@ Each campaign has a **Chat** tab with:
 
 Open chats check for new messages every 10 seconds, and you can pull down to refresh. The rules (who can read and write each chat, and that only the DM narrates) are in `CrusadersKit/Sources/CrusadersKit/CampaignChat.swift` and are unit tested. The app also drops any message that breaks them, even if a server returned it.
 
-**While iCloud is off** chats stay on the phone (and reset when the app closes), like campaigns. The sample campaign has a welcome message.
+**Without iCloud** (switched off, or Debug builds without `-useCloudKit`) chats stay on the phone (and reset when the app closes), like campaigns. The sample campaign has a welcome message.
 
 **With iCloud on** (`CloudKitChatService`):
 
@@ -133,7 +158,7 @@ In the CloudKit Dashboard, after the campaign setup above:
 
 Characters are saved with SwiftData, so they're still there after the app closes. With iCloud on, SwiftData also mirrors them to each player's **private** CloudKit database, so they sync across every device signed in to the same Apple ID. Nobody else can see them.
 
-- **iCloud off** (today, `CLOUDKIT_ENABLED: NO`): characters are saved on the device only. The Characters screen says so.
+- **iCloud off** (`CLOUDKIT_ENABLED: NO`, or Debug builds without `-useCloudKit`): characters are saved on the device only. The Characters screen says so.
 - **iCloud on**: Release builds (TestFlight) sync. Debug builds stay on the device unless launched with `-useCloudKit`. Characters already saved on the device are uploaded the first time iCloud is used.
 - Each character is one `StoredCharacter` record holding the character as JSON, so new character fields never need a database migration.
 - UI tests launch with `-resetCharacters` (start empty) or `-inMemoryCharacters` (never touch the disk).
