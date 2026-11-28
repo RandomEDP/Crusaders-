@@ -24,6 +24,10 @@ final class AppModel {
     let rules: RulesCatalog
     /// Rolls hit dice on level-up for characters that roll hit points.
     let diceRoller: DiceRoller
+    /// A D&D Beyond sheet that was read and is waiting on the review screen.
+    var pendingImport: PendingSheetImport?
+    /// Set when a picked or shared PDF couldn't be read.
+    var importProblem: String?
 
     init(
         roster: CharacterRoster = CharacterRoster(),
@@ -101,6 +105,36 @@ final class AppModel {
 
     func character(id: PlayerCharacter.ID) -> PlayerCharacter? {
         roster.character(id: id)
+    }
+
+    // MARK: Import from D&D Beyond
+
+    /// Reads a character sheet PDF (picked in Files, or shared to the app) and opens the review screen.
+    /// Everything is read on the phone; nothing is uploaded.
+    func openSheetPDF(at url: URL) {
+        let scoped = url.startAccessingSecurityScopedResource()
+        defer {
+            if scoped { url.stopAccessingSecurityScopedResource() }
+            // Files shared with "Open in" are copied to Documents/Inbox; the copy isn't needed once read.
+            if url.pathComponents.contains("Inbox") { try? FileManager.default.removeItem(at: url) }
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            let result = try DDBSheetParser.parse(pdf: data, catalog: rules)
+            importProblem = nil
+            pendingImport = PendingSheetImport(result: result)
+        } catch {
+            importProblem = error.localizedDescription
+        }
+    }
+
+    /// Saves a reviewed import as a new character, through the normal save path (so it syncs like any other).
+    @discardableResult
+    func saveImport(_ result: SheetImport) throws -> PlayerCharacter {
+        let character = try roster.add(imported: result, catalog: rules)
+        persist(character.id)
+        pendingImport = nil
+        return character
     }
 
     /// The character sheet with equipped items applied: from the campaign given, or else the first campaign
@@ -235,4 +269,10 @@ final class AppModel {
     func removeItem(_ itemID: String, from playerID: String, inCampaign code: String) async throws -> Campaign {
         try await campaigns.removeItem(itemID: itemID, from: playerID, inCampaign: code)
     }
+}
+
+/// A sheet read from a PDF, waiting to be reviewed.
+struct PendingSheetImport: Identifiable {
+    let id = UUID()
+    var result: SheetImport
 }
