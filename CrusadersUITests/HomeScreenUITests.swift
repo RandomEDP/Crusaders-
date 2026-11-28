@@ -94,7 +94,13 @@ final class HomeScreenUITests: XCTestCase {
         }
         lore.tap()
         XCTAssertTrue(app.navigationBars["Lore"].waitForExistence(timeout: 5))
-        XCTAssertTrue(app.descendants(matching: .any)["lore.Religion"].waitForExistence(timeout: 5))
+        // Backstory is the first field (Religion and body shape sit further down the form).
+        let backstory = app.descendants(matching: .any)["lore.Backstory"]
+        XCTAssertTrue(backstory.waitForExistence(timeout: 5))
+        backstory.tap()
+        backstory.typeText("Born in a storm")
+        app.navigationBars["Lore"].buttons.firstMatch.tap()
+        XCTAssertTrue(element(labelContaining: "Born in a storm").waitForExistence(timeout: 5))
     }
 
     func testAddingExperienceShowsLevelUpUnlocks() {
