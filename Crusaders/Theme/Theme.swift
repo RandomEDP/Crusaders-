@@ -52,13 +52,13 @@ enum Theme {
 }
 
 extension Color {
-    init(_ rgb: RGBColor) {
+    init(_ rgb: ThemeColor) {
         self.init(.sRGB, red: rgb.red / 255, green: rgb.green / 255, blue: rgb.blue / 255, opacity: 1)
     }
 }
 
 extension UIColor {
-    convenience init(_ rgb: RGBColor) {
+    convenience init(_ rgb: ThemeColor) {
         self.init(red: rgb.red / 255, green: rgb.green / 255, blue: rgb.blue / 255, alpha: 1)
     }
 }

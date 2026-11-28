@@ -5,23 +5,23 @@ final class ThemePaletteTests: XCTestCase {
     private let minimum = ThemePalette.minimumTextContrast
 
     func testContrastRatioMatchesKnownValues() {
-        let black = RGBColor(hex: 0x000000), white = RGBColor(hex: 0xFFFFFF)
+        let black = ThemeColor(hex: 0x000000), white = ThemeColor(hex: 0xFFFFFF)
         XCTAssertEqual(black.contrastRatio(with: white), 21, accuracy: 0.01)
         XCTAssertEqual(white.contrastRatio(with: white), 1, accuracy: 0.01)
-        XCTAssertEqual(RGBColor(hex: 0x777777).contrastRatio(with: white), 4.48, accuracy: 0.01)
+        XCTAssertEqual(ThemeColor(hex: 0x777777).contrastRatio(with: white), 4.48, accuracy: 0.01)
     }
 
     func testHexParsing() {
-        XCTAssertEqual(RGBColor(hex: 0x8E1B1B), RGBColor(142, 27, 27))
+        XCTAssertEqual(ThemeColor(hex: 0x8E1B1B), ThemeColor(142, 27, 27))
     }
 
     func testBlending() {
-        let mid = RGBColor(hex: 0x000000).blended(over: RGBColor(hex: 0xFFFFFF), opacity: 0.5)
-        XCTAssertEqual(mid, RGBColor(127.5, 127.5, 127.5))
+        let mid = ThemeColor(hex: 0x000000).blended(over: ThemeColor(hex: 0xFFFFFF), opacity: 0.5)
+        XCTAssertEqual(mid, ThemeColor(127.5, 127.5, 127.5))
     }
 
     /// The card colour as it actually appears over the darkest part of the parchment.
-    private var cardOverEdge: RGBColor {
+    private var cardOverEdge: ThemeColor {
         ThemePalette.card.blended(over: ThemePalette.parchmentEdge, opacity: ThemePalette.cardOpacity)
     }
 
@@ -45,7 +45,7 @@ final class ThemePaletteTests: XCTestCase {
     }
 
     func testWhiteTextOnCrimsonButtonsMeetsAA() {
-        XCTAssertGreaterThanOrEqual(RGBColor(hex: 0xFFFFFF).contrastRatio(with: ThemePalette.crimson), minimum)
+        XCTAssertGreaterThanOrEqual(ThemeColor(hex: 0xFFFFFF).contrastRatio(with: ThemePalette.crimson), minimum)
     }
 
     func testFontsAreDistinctAndHaveFiles() {

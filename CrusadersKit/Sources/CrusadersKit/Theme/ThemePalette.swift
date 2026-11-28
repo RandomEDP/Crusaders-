@@ -1,7 +1,7 @@
 import Foundation
 
 /// An sRGB colour with 0...255 channels, so the app's theme colours can be checked without UIKit.
-public struct RGBColor: Equatable, Sendable {
+public struct ThemeColor: Equatable, Sendable {
     public let red: Double
     public let green: Double
     public let blue: Double
@@ -26,14 +26,14 @@ public struct RGBColor: Equatable, Sendable {
     }
 
     /// WCAG 2 contrast ratio between two colours, from 1 to 21.
-    public func contrastRatio(with other: RGBColor) -> Double {
+    public func contrastRatio(with other: ThemeColor) -> Double {
         let a = relativeLuminance, b = other.relativeLuminance
         return (max(a, b) + 0.05) / (min(a, b) + 0.05)
     }
 
     /// This colour laid over `background` at the given opacity.
-    public func blended(over background: RGBColor, opacity: Double) -> RGBColor {
-        RGBColor(
+    public func blended(over background: ThemeColor, opacity: Double) -> ThemeColor {
+        ThemeColor(
             red * opacity + background.red * (1 - opacity),
             green * opacity + background.green * (1 - opacity),
             blue * opacity + background.blue * (1 - opacity)
@@ -44,21 +44,21 @@ public struct RGBColor: Equatable, Sendable {
 /// The old-parchment look: dark ink on aged paper with crimson accents taken from the logo.
 public enum ThemePalette {
     /// Main page colour, matching the middle of the parchment texture.
-    public static let parchment = RGBColor(hex: 0xEBDDBE)
+    public static let parchment = ThemeColor(hex: 0xEBDDBE)
     /// The darkest, browned edge of the parchment texture.
-    public static let parchmentEdge = RGBColor(hex: 0xC4A06C)
+    public static let parchmentEdge = ThemeColor(hex: 0xC4A06C)
     /// Cards and list rows sit on a lighter sheet of paper.
-    public static let card = RGBColor(hex: 0xF6EDD8)
+    public static let card = ThemeColor(hex: 0xF6EDD8)
     /// Opacity of the card colour over the texture.
     public static let cardOpacity = 0.88
     /// Main text.
-    public static let ink = RGBColor(hex: 0x22140A)
+    public static let ink = ThemeColor(hex: 0x22140A)
     /// Secondary text (captions, subtitles).
-    public static let inkSoft = RGBColor(hex: 0x5A4230)
+    public static let inkSoft = ThemeColor(hex: 0x5A4230)
     /// Accent for buttons, icons and links, the red of the shield's cross.
-    public static let crimson = RGBColor(hex: 0x8E1B1B)
+    public static let crimson = ThemeColor(hex: 0x8E1B1B)
     /// Thin borders around cards.
-    public static let rule = RGBColor(hex: 0x9C7A4E)
+    public static let rule = ThemeColor(hex: 0x9C7A4E)
 
     /// WCAG AA for normal text.
     public static let minimumTextContrast = 4.5
