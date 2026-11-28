@@ -16,7 +16,7 @@ struct CharacterCreationView: View {
         let preview = draft.preview(catalog: rules)
         NavigationStack {
             Form {
-                Section {
+                ThemedSection {
                     TextField("Name", text: $draft.name)
                         .accessibilityIdentifier("newCharacter.name")
                     Stepper("Starting level \(draft.level)", value: $draft.level, in: PlayerCharacter.levelRange)
@@ -31,21 +31,22 @@ struct CharacterCreationView: View {
                 summarySection(preview: preview)
 
                 if let errorMessage {
-                    Section {
-                        Text(errorMessage).foregroundStyle(.red)
+                    ThemedSection {
+                        Text(errorMessage).foregroundStyle(Theme.crimson)
                     }
                 }
 
-                Section {
+                ThemedSection {
                     Text(RulesCatalog.srdAttribution)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.serif(.footnote))
+                        .foregroundStyle(Theme.inkSoft)
                 }
             }
             .onChange(of: draft.level) {
                 draft.syncHitPointRolls(catalog: rules)
             }
             .navigationTitle("New character")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -71,7 +72,7 @@ struct CharacterCreationView: View {
     // MARK: Race
 
     private var raceSection: some View {
-        Section("Race") {
+        ThemedSection("Race") {
             Picker("Race", selection: Binding(
                 get: { draft.raceID ?? "" },
                 set: { draft.selectRace($0, catalog: rules) }
@@ -97,7 +98,7 @@ struct CharacterCreationView: View {
                 if let choice = race.abilityBonusChoice {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Choose \(choice.count) abilities to get +\(choice.bonus)")
-                            .font(.subheadline)
+                            .font(.serif(.subheadline))
                         ForEach(choice.from) { ability in
                             Toggle(ability.name, isOn: Binding(
                                 get: { draft.racialBonusChoices.contains(ability) },
@@ -114,7 +115,7 @@ struct CharacterCreationView: View {
                     ForEach(traits(for: race), id: \.name) { trait in
                         RuleTextRow(rule: trait)
                     }
-                    Text(race.languages).font(.footnote).foregroundStyle(.secondary)
+                    Text(race.languages).font(.serif(.footnote)).foregroundStyle(Theme.inkSoft)
                 }
             }
         }
@@ -137,7 +138,7 @@ struct CharacterCreationView: View {
     // MARK: Class
 
     private var classSection: some View {
-        Section("Class") {
+        ThemedSection("Class") {
             Picker("Class", selection: Binding(
                 get: { draft.classID ?? "" },
                 set: { draft.selectClass($0, catalog: rules) }
@@ -157,8 +158,8 @@ struct CharacterCreationView: View {
                     }
                     LabeledContent("\(characterClass.subclass.flavor)", value: "\(characterClass.subclass.name) at level \(characterClass.subclassLevel)")
                     Text(characterClass.proficiencies.joined(separator: ", "))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.serif(.footnote))
+                        .foregroundStyle(Theme.inkSoft)
                     ForEach(characterClass.level(1)?.features ?? [], id: \.name) { feature in
                         RuleTextRow(rule: feature)
                     }
@@ -170,7 +171,7 @@ struct CharacterCreationView: View {
     // MARK: Abilities
 
     private func abilitySection(preview: CharacterSheet) -> some View {
-        Section {
+        ThemedSection {
             Picker("Method", selection: Binding(
                 get: { draft.abilityMethod },
                 set: { draft.selectAbilityMethod($0, catalog: rules) }
@@ -253,7 +254,7 @@ struct CharacterCreationView: View {
         } label: {
             Label("Presets", systemImage: "wand.and.stars")
                 .labelStyle(.titleAndIcon)
-                .font(.caption.bold())
+                .font(.serifBold(.caption))
                 .textCase(nil)
         }
         .disabled(characterClass == nil)
@@ -266,7 +267,7 @@ struct CharacterCreationView: View {
             Text(ability.name)
             Spacer()
             Text("\(draft.baseAbilityScores[ability])")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.inkSoft)
             let bonus = preview.racialBonuses[ability] ?? 0
             if bonus != 0 {
                 Text(AbilityScores.signed(bonus)).foregroundStyle(.tint)
@@ -305,7 +306,7 @@ struct CharacterCreationView: View {
     // MARK: Hit points
 
     private func hitPointSection(preview: CharacterSheet) -> some View {
-        Section {
+        ThemedSection {
             Picker("Hit points", selection: Binding(
                 get: { draft.hitPointMethod },
                 set: { draft.selectHitPointMethod($0, catalog: rules) }
@@ -347,7 +348,7 @@ struct CharacterCreationView: View {
     private func skillSection(preview: CharacterSheet) -> some View {
         let limit = draft.skillChoiceCount(catalog: rules)
         let granted = race?.grantedSkills ?? []
-        return Section {
+        return ThemedSection {
             ForEach(draft.allowedSkills(catalog: rules)) { skill in
                 Toggle(isOn: Binding(
                     get: { draft.skills.contains(skill) },
@@ -355,7 +356,7 @@ struct CharacterCreationView: View {
                 )) {
                     HStack {
                         Text(skill.name)
-                        Text(skill.ability.abbreviation).font(.caption).foregroundStyle(.secondary)
+                        Text(skill.ability.abbreviation).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
                     }
                 }
                 .disabled(!draft.skills.contains(skill) && draft.skills.count >= limit)
@@ -371,7 +372,7 @@ struct CharacterCreationView: View {
     // MARK: Summary
 
     private func summarySection(preview: CharacterSheet) -> some View {
-        Section("Summary") {
+        ThemedSection("Summary") {
             LabeledContent("Hit points", value: "\(preview.maxHitPoints)")
             LabeledContent("Speed", value: "\(preview.speed) ft")
             LabeledContent("Proficiency bonus", value: AbilityScores.signed(preview.proficiencyBonus))
@@ -392,10 +393,10 @@ private struct AbilityRollRow: View {
                 Text("\(die)")
                     .monospacedDigit()
                     .strikethrough(index == roll.droppedIndex)
-                    .foregroundStyle(index == roll.droppedIndex ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.primary))
+                    .foregroundStyle(index == roll.droppedIndex ? AnyShapeStyle(Theme.inkSoft.opacity(0.5)) : AnyShapeStyle(Theme.ink))
             }
             Spacer()
-            Text("\(roll.total)").font(.headline).monospacedDigit()
+            Text("\(roll.total)").font(.serifBold(.headline)).monospacedDigit()
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("Rolled \(roll.dice.map(String.init).joined(separator: ", ")), total \(roll.total)")
@@ -410,13 +411,13 @@ struct RuleTextRow: View {
     var body: some View {
         DisclosureGroup {
             Text(rule.description)
-                .font(.callout)
+                .font(.serif(.callout))
                 .fixedSize(horizontal: false, vertical: true)
         } label: {
             VStack(alignment: .leading, spacing: 2) {
                 Text(rule.name)
                 if let caption {
-                    Text(caption).font(.caption).foregroundStyle(.secondary)
+                    Text(caption).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
                 }
             }
         }

@@ -17,14 +17,14 @@ struct AddExperienceView: View {
         NavigationStack {
             Form {
                 if let sheet = model.sheet(for: characterID) {
-                    Section {
+                    ThemedSection {
                         LabeledContent("Current XP", value: sheet.character.experiencePoints.formatted())
                         if let next = sheet.nextLevelXP {
                             LabeledContent("Level \(sheet.level + 1) at", value: "\(next.formatted()) XP")
                         }
                     }
                 }
-                Section {
+                ThemedSection {
                     TextField("XP to add", text: $amountText)
                         .keyboardType(.numberPad)
                         .accessibilityIdentifier("xp.amount")
@@ -42,12 +42,13 @@ struct AddExperienceView: View {
                     Text("Your level goes up automatically when you pass the next XP milestone.")
                 }
                 if let errorMessage {
-                    Section {
-                        Text(errorMessage).foregroundStyle(.red)
+                    ThemedSection {
+                        Text(errorMessage).foregroundStyle(Theme.crimson)
                     }
                 }
             }
             .navigationTitle("Add experience")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -88,13 +89,13 @@ struct LevelUpView: View {
     var body: some View {
         NavigationStack {
             List {
-                Section {
+                ThemedSection {
                     VStack(spacing: 8) {
                         Image(systemName: "star.circle.fill")
                             .font(.system(size: 48))
                             .foregroundStyle(.tint)
                         Text("\(summary.characterName) reached level \(summary.toLevel)!")
-                            .font(.title2.bold())
+                            .font(.gothic(.title2))
                             .multilineTextAlignment(.center)
                             .accessibilityIdentifier("levelUp.title")
                     }
@@ -106,6 +107,7 @@ struct LevelUpView: View {
                 }
             }
             .navigationTitle("Level up")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
@@ -121,7 +123,7 @@ struct LevelUpView: View {
     }
 
     private func levelSection(_ unlocks: LevelUnlocks) -> some View {
-        Section("Level \(unlocks.level)") {
+        ThemedSection("Level \(unlocks.level)") {
             Label(hitPointText(unlocks), systemImage: "heart.fill")
             if let bonus = unlocks.proficiencyBonus {
                 Label("Proficiency bonus is now +\(bonus)", systemImage: "arrow.up.circle")
@@ -149,7 +151,7 @@ struct LevelUpView: View {
                     Label("Learn \(unlocks.spellsKnownGained) more spell(s)", systemImage: "sparkles")
                 }
                 if !unlocks.subclassSpells.isEmpty {
-                    Text("Subclass spells").font(.subheadline.bold())
+                    Text("Subclass spells").font(.serifBold(.subheadline))
                     ForEach(unlocks.subclassSpells) { spell in
                         SpellRow(spell: spell)
                     }
@@ -157,9 +159,9 @@ struct LevelUpView: View {
                 if !unlocks.newlyAvailableSpells.isEmpty {
                     if let newLevel = unlocks.newSpellLevel {
                         Text("You can now cast \(Spell.ordinal(newLevel))-level spells. Tap to learn:")
-                            .font(.subheadline.bold())
+                            .font(.serifBold(.subheadline))
                     } else {
-                        Text("New spells you can learn:").font(.subheadline.bold())
+                        Text("New spells you can learn:").font(.serifBold(.subheadline))
                     }
                     ForEach(unlocks.newlyAvailableSpells) { spell in
                         Button {
@@ -167,7 +169,7 @@ struct LevelUpView: View {
                         } label: {
                             SpellRow(spell: spell, isKnown: knownSpellIDs.contains(spell.id))
                         }
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Theme.ink)
                     }
                 }
             }

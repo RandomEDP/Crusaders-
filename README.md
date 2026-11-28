@@ -103,6 +103,16 @@ Content outside the SRD (for example Xanathar's or Tasha's subclasses, or races 
 
 > This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
 
+## Look and feel
+
+The app uses an old-parchment theme. Everything lives in `Crusaders/Theme/Theme.swift`; the colours are in `CrusadersKit/Sources/CrusadersKit/Theme/ThemePalette.swift` so their contrast is unit tested (body text at least 7:1, everything else at least 4.5:1).
+
+- Logo and app icon: `Logo` and `AppIcon` in the asset catalog, from the red shield and dragon artwork.
+- Background: `Parchment` image, with list rows on lighter paper cards.
+- Fonts (bundled in `Crusaders/Resources/Fonts`, both SIL Open Font License 1.1, licences included): Grenze Gotisch for titles and headings, EB Garamond for everything else. Both scale with the iPhone's text size setting.
+- New screens: call `.parchmentScreen()` after `.navigationTitle(...)` and use `ThemedSection` instead of `Section`.
+- The app always uses light mode so the parchment stays readable.
+
 ## Work cycle
 
 1. Create a branch for each piece of work.

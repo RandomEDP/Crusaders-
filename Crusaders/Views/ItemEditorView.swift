@@ -19,14 +19,14 @@ struct ItemEditorView: View {
         NavigationStack {
             Form {
                 if let errorMessage {
-                    Section {
+                    ThemedSection {
                         Text(errorMessage)
-                            .foregroundStyle(.red)
+                            .foregroundStyle(Theme.crimson)
                             .accessibilityIdentifier("itemEditor.error")
                     }
                 }
 
-                Section("Basics") {
+                ThemedSection("Basics") {
                     TextField("Name", text: $draft.name)
                         .accessibilityIdentifier("itemEditor.name")
                     Picker("Category", selection: $draft.category) {
@@ -36,7 +36,7 @@ struct ItemEditorView: View {
                         .accessibilityIdentifier("itemEditor.group")
                 }
 
-                Section("Cost and weight") {
+                ThemedSection("Cost and weight") {
                     Toggle("Has a cost", isOn: hasCost)
                     if draft.cost != nil {
                         TextField("Amount", text: costAmount)
@@ -51,7 +51,7 @@ struct ItemEditorView: View {
                         .accessibilityIdentifier("itemEditor.weight")
                 }
 
-                Section("Magic") {
+                ThemedSection("Magic") {
                     Picker("Rarity", selection: $draft.rarity) {
                         Text("Not magic").tag(Rarity?.none)
                         ForEach(Rarity.allCases) { Text($0.title).tag(Rarity?.some($0)) }
@@ -59,7 +59,7 @@ struct ItemEditorView: View {
                     Toggle("Requires attunement", isOn: $draft.requiresAttunement)
                 }
 
-                Section {
+                ThemedSection {
                     Toggle("Weapon stats", isOn: hasWeapon)
                         .accessibilityIdentifier("itemEditor.hasWeapon")
                     if let weapon = Binding($draft.weapon) {
@@ -67,7 +67,7 @@ struct ItemEditorView: View {
                     }
                 }
 
-                Section {
+                ThemedSection {
                     Toggle("Armour stats", isOn: hasArmour)
                         .accessibilityIdentifier("itemEditor.hasArmour")
                     if let armour = Binding($draft.armour) {
@@ -75,20 +75,21 @@ struct ItemEditorView: View {
                     }
                 }
 
-                Section("Description") {
+                ThemedSection("Description") {
                     TextEditor(text: $draft.description)
                         .frame(minHeight: 120)
                         .accessibilityIdentifier("itemEditor.description")
                 }
 
                 if library.catalog.isEdited(draft.id) {
-                    Section {
+                    ThemedSection {
                         Button("Reset to SRD values", role: .destructive) { confirmingReset = true }
                             .accessibilityIdentifier("itemEditor.reset")
                     }
                 }
             }
             .navigationTitle("Edit \(draft.name.isEmpty ? "item" : draft.name)")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .disabled(isSaving)
             .toolbar {

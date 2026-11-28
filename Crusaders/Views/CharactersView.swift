@@ -20,11 +20,12 @@ struct CharactersView: View {
                             CharacterSheetView(characterID: character.id)
                         } label: {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(character.name).font(.headline)
-                                Text(character.summary).font(.subheadline).foregroundStyle(.secondary)
+                                Text(character.name).font(.serifBold(.headline))
+                                Text(character.summary).font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
                             }
                         }
                         .accessibilityIdentifier("characters.row")
+                        .parchmentRow()
                     }
                     .onDelete { model.deleteCharacters(atOffsets: $0) }
                 }
@@ -34,6 +35,7 @@ struct CharactersView: View {
             StorageNote(mode: model.characterStorageMode, problem: model.characterStorageProblem)
         }
         .navigationTitle("Characters")
+        .parchmentScreen()
         .toolbar {
             ToolbarItem(placement: .topBarLeading) {
                 Button {
@@ -58,12 +60,12 @@ private struct StorageNote: View {
     var body: some View {
         if let text = problem ?? message {
             Label(text, systemImage: icon)
-                .font(.footnote)
-                .foregroundStyle(problem == nil ? AnyShapeStyle(.secondary) : AnyShapeStyle(.red))
+                .font(.serif(.footnote))
+                .foregroundStyle(problem == nil ? AnyShapeStyle(Theme.inkSoft) : AnyShapeStyle(Theme.crimson))
                 .padding(.horizontal)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
+                .background(Theme.parchment)
                 .accessibilityIdentifier("characters.storage")
         }
     }

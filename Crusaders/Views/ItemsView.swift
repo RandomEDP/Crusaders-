@@ -12,25 +12,26 @@ struct ItemsView: View {
         let sections = library.catalog.sections(matching: query)
         List {
             if let error = library.syncError {
-                Section {
+                ThemedSection {
                     Label(error, systemImage: "exclamationmark.icloud")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(.serif(.footnote))
+                        .foregroundStyle(Theme.inkSoft)
                 }
             }
 
             if sections.isEmpty {
                 ContentUnavailableView.search(text: query)
+                    .listRowBackground(Color.clear)
             }
 
             ForEach(sections) { section in
-                Section {
+                ThemedSection {
                     if isExpanded(section.category) {
                         ForEach(section.groups) { group in
                             if section.groups.count > 1 {
                                 Text(group.name)
-                                    .font(.subheadline.bold())
-                                    .foregroundStyle(.secondary)
+                                    .font(.serifBold(.subheadline))
+                                    .foregroundStyle(Theme.inkSoft)
                                     .accessibilityAddTraits(.isHeader)
                             }
                             ForEach(group.items) { item in
@@ -54,14 +55,15 @@ struct ItemsView: View {
                 }
             }
 
-            Section {
+            ThemedSection {
                 Text(SRDAttribution.text)
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.caption2))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
         .searchable(text: $query, prompt: "Search items")
         .navigationTitle("Items")
+        .parchmentScreen()
         .overlay(alignment: .top) {
             if library.isLoading && library.catalog.overrides.isEmpty {
                 ProgressView().padding(.top, 8)
@@ -97,12 +99,12 @@ private struct CategoryHeader: View {
         Button(action: action) {
             HStack {
                 Label(category.title, systemImage: category.systemImage)
-                    .font(.headline)
+                    .font(.gothic(.title3))
                 Spacer()
-                Text("\(count)").foregroundStyle(.secondary)
+                Text("\(count)").foregroundStyle(Theme.inkSoft)
                 Image(systemName: "chevron.right")
                     .rotationEffect(.degrees(isExpanded ? 90 : 0))
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSoft)
             }
             .contentShape(Rectangle())
         }
@@ -120,7 +122,7 @@ struct ItemRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             HStack(spacing: 6) {
-                Text(item.name).font(.headline)
+                Text(item.name).font(.serifBold(.headline))
                 if isEdited {
                     Image(systemName: "pencil.circle.fill")
                         .foregroundStyle(.tint)
@@ -128,7 +130,7 @@ struct ItemRow: View {
                 }
             }
             if !item.summary.isEmpty {
-                Text(item.summary).font(.subheadline).foregroundStyle(.secondary)
+                Text(item.summary).font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
             }
         }
     }
