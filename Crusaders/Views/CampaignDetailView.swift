@@ -31,8 +31,9 @@ struct CampaignDetailView: View {
 
                 if let errorMessage {
                     Text(errorMessage)
-                        .foregroundStyle(.red)
+                        .foregroundStyle(Theme.crimson)
                         .accessibilityIdentifier("campaign.error")
+                        .parchmentRow()
                 }
 
                 switch tab {
@@ -41,6 +42,7 @@ struct CampaignDetailView: View {
                 }
             }
             .navigationTitle(campaign.name)
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .refreshable { await manager.refresh() }
             .sheet(item: $addingTo) { player in
@@ -50,6 +52,7 @@ struct CampaignDetailView: View {
             }
         } else {
             ContentUnavailableView("Campaign not found", systemImage: "map")
+                .parchmentScreen()
         }
     }
 
@@ -57,11 +60,11 @@ struct CampaignDetailView: View {
 
     @ViewBuilder
     private func party(_ campaign: Campaign, manager: CampaignManager) -> some View {
-        Section {
+        ThemedSection {
             VStack(spacing: 8) {
-                Text("Join code").font(.subheadline).foregroundStyle(.secondary)
+                Text("Join code").font(.serif(.subheadline)).foregroundStyle(Theme.inkSoft)
                 Text(JoinCode.display(campaign.joinCode))
-                    .font(.system(size: 44, weight: .bold, design: .monospaced))
+                    .font(.joinCode)
                     .accessibilityIdentifier("campaign.code")
                 ShareLink(
                     item: "Join my Crusaders campaign \"\(campaign.name)\" with code \(campaign.joinCode)",
@@ -78,14 +81,14 @@ struct CampaignDetailView: View {
                  : "You joined as a player.")
         }
 
-        Section("Dungeon Master") {
+        ThemedSection("Dungeon Master") {
             memberRow(campaign.dungeonMaster, isMe: campaign.dungeonMaster.id == manager.me.id)
         }
 
-        Section("Players") {
+        ThemedSection("Players") {
             if campaign.players.isEmpty {
                 Text("No players yet. Share the code to invite your party.")
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(Theme.inkSoft)
             }
             ForEach(campaign.players) { player in
                 memberRow(player, isMe: player.id == manager.me.id)
@@ -93,10 +96,10 @@ struct CampaignDetailView: View {
         }
 
         if !manager.isShared {
-            Section {
+            ThemedSection {
                 Text("Until iCloud is switched on, campaigns stay on this phone, so friends can't join yet. Try joining the sample campaign with code \(JoinCode.display(InMemoryCampaignDirectory.sampleCode)).")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.footnote))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
     }
@@ -106,13 +109,13 @@ struct CampaignDetailView: View {
             HStack {
                 Text(member.name)
                 if isMe {
-                    Text("(you)").foregroundStyle(.secondary)
+                    Text("(you)").foregroundStyle(Theme.inkSoft)
                 }
             }
             if let character = member.character {
                 Text("\(character.name), \(character.summary)")
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.subheadline))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
     }
@@ -128,14 +131,14 @@ struct CampaignDetailView: View {
         if players.isEmpty {
             Text(isDM ? "No players yet. Once players join, you can give their characters items here."
                       : "You're not in this campaign's party.")
-                .foregroundStyle(.secondary)
+                .foregroundStyle(Theme.inkSoft)
         }
 
         ForEach(players) { player in
-            Section {
+            ThemedSection {
                 let entries = campaign.inventory(of: player.id)
                 if entries.isEmpty {
-                    Text("No items yet.").foregroundStyle(.secondary)
+                    Text("No items yet.").foregroundStyle(Theme.inkSoft)
                 }
                 ForEach(entries) { entry in
                     HStack {
@@ -197,24 +200,24 @@ struct InventoryItemPicker: View {
         }
         NavigationStack {
             List {
-                Section {
+                ThemedSection {
                     Stepper("Quantity: \(quantity)", value: $quantity, in: 1...99)
                         .accessibilityIdentifier("itemPicker.quantity")
                     if let errorMessage {
-                        Text(errorMessage).foregroundStyle(.red)
+                        Text(errorMessage).foregroundStyle(Theme.crimson)
                     }
                 } footer: {
                     Text("Tap an item to give it to \(player.character?.name ?? player.name).")
                 }
-                Section {
+                ThemedSection {
                     ForEach(items) { item in
                         Button {
                             Task { await choose(item) }
                         } label: {
                             HStack {
-                                Text(item.name).foregroundStyle(.primary)
+                                Text(item.name).foregroundStyle(Theme.ink)
                                 Spacer()
-                                Text(item.category.title).font(.caption).foregroundStyle(.secondary)
+                                Text(item.category.title).font(.serif(.caption)).foregroundStyle(Theme.inkSoft)
                             }
                         }
                         .accessibilityIdentifier("itemPicker.item.\(item.id)")
@@ -223,6 +226,7 @@ struct InventoryItemPicker: View {
             }
             .searchable(text: $query, placement: .navigationBarDrawer(displayMode: .always), prompt: "Search items")
             .navigationTitle("Add item")
+            .parchmentScreen()
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

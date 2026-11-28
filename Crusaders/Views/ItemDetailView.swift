@@ -11,7 +11,7 @@ struct ItemDetailView: View {
         Group {
             if let item = library.catalog.item(id: itemID) {
                 List {
-                    Section {
+                    ThemedSection {
                         LabeledContent("Category", value: item.category.title)
                         LabeledContent("Type", value: item.group)
                         if let cost = item.cost { LabeledContent("Cost", value: cost.text) }
@@ -21,7 +21,7 @@ struct ItemDetailView: View {
                     }
 
                     if let weapon = item.weapon {
-                        Section("Weapon") {
+                        ThemedSection("Weapon") {
                             LabeledContent("Damage", value: weapon.damageText)
                                 .accessibilityIdentifier("item.detail.damage")
                             if let versatile = weapon.versatileDamage {
@@ -32,7 +32,7 @@ struct ItemDetailView: View {
                     }
 
                     if let armour = item.armour {
-                        Section("Armour") {
+                        ThemedSection("Armour") {
                             LabeledContent("Kind", value: armour.kind.title)
                             LabeledContent(armour.kind == .shield ? "AC bonus" : "Armour Class", value: armour.armorClassText)
                                 .accessibilityIdentifier("item.detail.ac")
@@ -44,20 +44,21 @@ struct ItemDetailView: View {
                     }
 
                     if !item.description.isEmpty {
-                        Section("Description") {
+                        ThemedSection("Description") {
                             Text(item.description)
                         }
                     }
 
                     if library.catalog.isEdited(item.id) {
-                        Section {
+                        ThemedSection {
                             Label("Edited by the creator", systemImage: "pencil.circle")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(Theme.inkSoft)
                                 .accessibilityIdentifier("item.detail.edited")
                         }
                     }
                 }
                 .navigationTitle(item.name)
+                .parchmentScreen()
                 .toolbar {
                     if library.isCreator {
                         Button("Edit") { isEditing = true }
@@ -69,6 +70,7 @@ struct ItemDetailView: View {
                 }
             } else {
                 ContentUnavailableView("Item not found", systemImage: "questionmark.square.dashed")
+                    .parchmentScreen()
             }
         }
         .navigationBarTitleDisplayMode(.inline)

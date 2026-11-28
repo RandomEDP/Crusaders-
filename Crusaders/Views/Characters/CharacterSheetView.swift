@@ -17,6 +17,7 @@ struct CharacterSheetView: View {
             content(sheet)
         } else {
             ContentUnavailableView("Character not found", systemImage: "person.crop.circle.badge.questionmark")
+                .parchmentScreen()
         }
     }
 
@@ -32,13 +33,14 @@ struct CharacterSheetView: View {
             skillsSection(sheet)
             spellsSection(sheet)
             featuresSection(sheet)
-            Section {
+            ThemedSection {
                 Text(RulesCatalog.srdAttribution)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.footnote))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
         .navigationTitle(sheet.character.name)
+        .parchmentScreen()
         .sheet(isPresented: $isAddingExperience, onDismiss: {
             levelUp = pendingLevelUp
             pendingLevelUp = nil
@@ -58,20 +60,20 @@ struct CharacterSheetView: View {
     // MARK: Sections
 
     private func experienceSection(_ sheet: CharacterSheet) -> some View {
-        Section {
+        ThemedSection {
             VStack(alignment: .leading, spacing: 6) {
                 Text(sheet.character.summary)
-                    .font(.headline)
+                    .font(.serifBold(.headline))
                     .accessibilityIdentifier("sheet.summary")
                 if let next = sheet.nextLevelXP {
                     ProgressView(value: sheet.levelProgress)
                     Text("\(sheet.character.experiencePoints.formatted()) / \(next.formatted()) XP")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.serif(.caption))
+                        .foregroundStyle(Theme.inkSoft)
                 } else {
                     Text("\(sheet.character.experiencePoints.formatted()) XP (max level)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.serif(.caption))
+                        .foregroundStyle(Theme.inkSoft)
                 }
             }
             Button {
@@ -84,7 +86,7 @@ struct CharacterSheetView: View {
     }
 
     private func improvementSection(_ sheet: CharacterSheet) -> some View {
-        Section {
+        ThemedSection {
             ForEach(Ability.allCases) { ability in
                 Button {
                     do {
@@ -97,13 +99,13 @@ struct CharacterSheetView: View {
                     HStack {
                         Text("+1 \(ability.name)")
                         Spacer()
-                        Text("\(sheet.abilityScores[ability])").foregroundStyle(.secondary)
+                        Text("\(sheet.abilityScores[ability])").foregroundStyle(Theme.inkSoft)
                     }
                 }
                 .disabled(sheet.abilityScores[ability] >= AbilityScores.maximum)
             }
             if let errorMessage {
-                Text(errorMessage).foregroundStyle(.red)
+                Text(errorMessage).foregroundStyle(Theme.crimson)
             }
         } header: {
             Text("Ability Score Improvement")
@@ -113,17 +115,17 @@ struct CharacterSheetView: View {
     }
 
     private func abilitiesSection(_ sheet: CharacterSheet) -> some View {
-        Section("Abilities") {
+        ThemedSection("Abilities") {
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 12) {
                 ForEach(Ability.allCases) { ability in
                     VStack(spacing: 2) {
-                        Text(ability.abbreviation).font(.caption.bold()).foregroundStyle(.secondary)
-                        Text(AbilityScores.signed(sheet.modifier(ability))).font(.title2.bold())
-                        Text("\(sheet.abilityScores[ability])").font(.caption)
+                        Text(ability.abbreviation).font(.serifBold(.caption)).foregroundStyle(Theme.inkSoft)
+                        Text(AbilityScores.signed(sheet.modifier(ability))).font(.gothic(.title2))
+                        Text("\(sheet.abilityScores[ability])").font(.serif(.caption))
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 10))
+                    .paperCard(RoundedRectangle(cornerRadius: 10))
                     .accessibilityElement(children: .combine)
                 }
             }
@@ -132,7 +134,7 @@ struct CharacterSheetView: View {
     }
 
     private func combatSection(_ sheet: CharacterSheet) -> some View {
-        Section("Combat") {
+        ThemedSection("Combat") {
             LabeledContent("Hit points", value: "\(sheet.maxHitPoints)")
             LabeledContent("Hit dice", value: "\(sheet.level)d\(sheet.hitDie)")
             LabeledContent("Proficiency bonus", value: AbilityScores.signed(sheet.proficiencyBonus))
@@ -144,14 +146,14 @@ struct CharacterSheetView: View {
             }
             if let proficiencies = sheet.characterClass?.proficiencies, !proficiencies.isEmpty {
                 Text(proficiencies.joined(separator: ", "))
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
+                    .font(.serif(.footnote))
+                    .foregroundStyle(Theme.inkSoft)
             }
         }
     }
 
     private func savingThrowsSection(_ sheet: CharacterSheet) -> some View {
-        Section("Saving throws") {
+        ThemedSection("Saving throws") {
             ForEach(Ability.allCases) { ability in
                 ProficiencyRow(
                     title: ability.name,
@@ -163,7 +165,7 @@ struct CharacterSheetView: View {
     }
 
     private func skillsSection(_ sheet: CharacterSheet) -> some View {
-        Section("Skills") {
+        ThemedSection("Skills") {
             ForEach(Skill.allCases) { skill in
                 ProficiencyRow(
                     title: "\(skill.name) (\(skill.ability.abbreviation))",
@@ -177,7 +179,7 @@ struct CharacterSheetView: View {
     @ViewBuilder
     private func spellsSection(_ sheet: CharacterSheet) -> some View {
         if let ability = sheet.spellcastingAbility {
-            Section("Spellcasting") {
+            ThemedSection("Spellcasting") {
                 LabeledContent("Ability", value: ability.name)
                 if let dc = sheet.spellSaveDC, let attack = sheet.spellAttackBonus {
                     LabeledContent("Spell save DC", value: "\(dc)")
@@ -192,15 +194,15 @@ struct CharacterSheetView: View {
                 if sheet.highestSpellLevel > 0 {
                     SpellSlotsRow(slots: sheet.spellSlots)
                 } else {
-                    Text("No spell slots yet.").foregroundStyle(.secondary)
+                    Text("No spell slots yet.").foregroundStyle(Theme.inkSoft)
                 }
             }
         }
 
-        Section {
+        ThemedSection {
             let known = sheet.knownSpells
             if known.isEmpty {
-                Text("No spells yet.").foregroundStyle(.secondary)
+                Text("No spells yet.").foregroundStyle(Theme.inkSoft)
             }
             ForEach(known) { spell in
                 NavigationLink {
@@ -228,7 +230,7 @@ struct CharacterSheetView: View {
     }
 
     private func featuresSection(_ sheet: CharacterSheet) -> some View {
-        Section("Features and traits") {
+        ThemedSection("Features and traits") {
             ForEach(Array(sheet.features.enumerated()), id: \.offset) { _, feature in
                 RuleTextRow(rule: feature.rule, caption: "\(feature.source) level \(feature.level)")
             }
@@ -236,7 +238,7 @@ struct CharacterSheetView: View {
                 RuleTextRow(rule: trait, caption: sheet.character.race)
             }
             if sheet.features.isEmpty && sheet.traits.isEmpty {
-                Text("Nothing yet.").foregroundStyle(.secondary)
+                Text("Nothing yet.").foregroundStyle(Theme.inkSoft)
             }
         }
     }
@@ -250,8 +252,8 @@ private struct ProficiencyRow: View {
     var body: some View {
         HStack {
             Image(systemName: isProficient ? "circle.fill" : "circle")
-                .font(.caption2)
-                .foregroundStyle(isProficient ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
+                .font(.serif(.caption2))
+                .foregroundStyle(isProficient ? AnyShapeStyle(.tint) : AnyShapeStyle(Theme.inkSoft))
             Text(title)
             Spacer()
             Text(AbilityScores.signed(value)).monospacedDigit()
@@ -266,13 +268,13 @@ struct SpellSlotsRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("Spell slots").font(.subheadline)
+            Text("Spell slots").font(.serif(.subheadline))
             HStack(spacing: 8) {
                 ForEach(Array(slots.enumerated()), id: \.offset) { index, count in
                     if count > 0 {
                         VStack(spacing: 0) {
-                            Text("\(count)").font(.headline)
-                            Text(Spell.ordinal(index + 1)).font(.caption2).foregroundStyle(.secondary)
+                            Text("\(count)").font(.serifBold(.headline))
+                            Text(Spell.ordinal(index + 1)).font(.serif(.caption2)).foregroundStyle(Theme.inkSoft)
                         }
                         .frame(minWidth: 32)
                     }
