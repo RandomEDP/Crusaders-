@@ -64,7 +64,7 @@ final class RollingAndPresetTests: XCTestCase {
     func testPointBuyRejectsScoresOverBudget() {
         var draft = fighterDraft()
         draft.selectAbilityMethod(.pointBuy)
-        draft.baseAbilityScores = AbilityScores(str: 15, dex: 15, con: 15, int: 8, wis: 8, cha: 8)
+        draft.baseAbilityScores = AbilityScores(str: 15, dex: 15, con: 15, int: 10, wis: 8, cha: 8)
         XCTAssertFalse(draft.scoresFollowMethod)
         XCTAssertThrowsError(try draft.build()) { XCTAssertEqual($0 as? CharacterError, .invalidAbilityScore) }
     }
